@@ -5,7 +5,7 @@
 let cart = [];
 let pendingOrderData = null;
 let activeOrderId = null;
-const DANA_NUMBER = "081234567890"; // Ganti nomor DANA kamu di sini
+const DANA_NUMBER = "085693164038"; // Ganti nomor DANA kamu di sini
 
 const socket = io();
 
