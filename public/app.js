@@ -9,6 +9,48 @@ const DANA_NUMBER = "081234567890"; // Ganti nomor DANA kamu di sini
 
 const socket = io();
 
+// ---------- MENU (diambil dari server, bukan hardcode) ----------
+async function loadMenu() {
+    const container = document.getElementById('menu-container');
+    if (!container) return;
+
+    try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+
+        if (!data.success || !data.products || data.products.length === 0) {
+            container.innerHTML = `<p class="text-xs col-span-full" style="color: var(--text-faint)">Belum ada menu tersedia.</p>`;
+            return;
+        }
+
+        container.innerHTML = data.products.map(p => `
+            <div class="surface-card p-4 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-[var(--radius-sm)] flex items-center justify-center text-xl shrink-0" style="background: var(--border-soft)">${p.icon || '☕'}</div>
+                    <div>
+                        <h3 class="font-medium text-sm" style="color: var(--text)">${p.name}</h3>
+                        <p class="text-xs text-[var(--text-muted)] mt-0.5">${p.description || ''}</p>
+                        <span class="text-sm font-semibold" style="color: var(--accent-dark)">Rp ${p.price.toLocaleString('id-ID')}</span>
+                    </div>
+                </div>
+                <button data-name="${p.name}" data-price="${p.price}" class="btn-add-menu btn-ghost text-xs px-3 py-2 shrink-0">+ Tambah</button>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Gagal memuat menu:', error);
+        container.innerHTML = `<p class="text-xs col-span-full" style="color: var(--danger)">Gagal memuat menu. Coba refresh halaman.</p>`;
+    }
+}
+
+// Event delegation: lebih aman dari onclick inline kalau nama produk ada tanda kutip
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-add-menu');
+    if (!btn) return;
+    addToCart(btn.dataset.name, Number(btn.dataset.price));
+});
+
+document.addEventListener('DOMContentLoaded', loadMenu);
+
 // ---------- KERANJANG ----------
 function addToCart(name, price) {
     const existingItem = cart.find(item => item.name === name);

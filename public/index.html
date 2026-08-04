@@ -62,58 +62,9 @@
             <h2 class="font-display text-2xl">Daftar Favorit Kami</h2>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Menu 1 -->
-            <div class="surface-card p-4 flex items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-[var(--radius-sm)] flex items-center justify-center text-xl shrink-0" style="background: var(--border-soft)">☕</div>
-                    <div>
-                        <h3 class="font-medium text-sm" style="color: var(--text)">Kopi Susu Gula Aren</h3>
-                        <p class="text-xs text-[var(--text-muted)] mt-0.5">Espresso, susu segar, gula aren</p>
-                        <span class="text-sm font-semibold" style="color: var(--accent-dark)">Rp 18.000</span>
-                    </div>
-                </div>
-                <button onclick="addToCart('Kopi Susu Gula Aren', 18000)" class="btn-ghost text-xs px-3 py-2 shrink-0">+ Tambah</button>
-            </div>
-
-            <!-- Menu 2 -->
-            <div class="surface-card p-4 flex items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-[var(--radius-sm)] flex items-center justify-center text-xl shrink-0" style="background: var(--border-soft)">🧊</div>
-                    <div>
-                        <h3 class="font-medium text-sm" style="color: var(--text)">Americano Hot/Ice</h3>
-                        <p class="text-xs text-[var(--text-muted)] mt-0.5">Double shot, dingin atau panas</p>
-                        <span class="text-sm font-semibold" style="color: var(--accent-dark)">Rp 15.000</span>
-                    </div>
-                </div>
-                <button onclick="addToCart('Americano Hot/Ice', 15000)" class="btn-ghost text-xs px-3 py-2 shrink-0">+ Tambah</button>
-            </div>
-
-            <!-- Menu 3 -->
-            <div class="surface-card p-4 flex items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-[var(--radius-sm)] flex items-center justify-center text-xl shrink-0" style="background: var(--border-soft)">🥛</div>
-                    <div>
-                        <h3 class="font-medium text-sm" style="color: var(--text)">Matcha Latte</h3>
-                        <p class="text-xs text-[var(--text-muted)] mt-0.5">Green tea premium, susu lembut</p>
-                        <span class="text-sm font-semibold" style="color: var(--accent-dark)">Rp 22.000</span>
-                    </div>
-                </div>
-                <button onclick="addToCart('Matcha Latte', 22000)" class="btn-ghost text-xs px-3 py-2 shrink-0">+ Tambah</button>
-            </div>
-
-            <!-- Menu 4 -->
-            <div class="surface-card p-4 flex items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-[var(--radius-sm)] flex items-center justify-center text-xl shrink-0" style="background: var(--border-soft)">🍫</div>
-                    <div>
-                        <h3 class="font-medium text-sm" style="color: var(--text)">Dark Chocolate</h3>
-                        <p class="text-xs text-[var(--text-muted)] mt-0.5">Cokelat pekat, rasa rich</p>
-                        <span class="text-sm font-semibold" style="color: var(--accent-dark)">Rp 20.000</span>
-                    </div>
-                </div>
-                <button onclick="addToCart('Dark Chocolate', 20000)" class="btn-ghost text-xs px-3 py-2 shrink-0">+ Tambah</button>
-            </div>
+        <!-- Diisi otomatis oleh app.js lewat fetch('/api/products') -->
+        <div id="menu-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <p class="text-xs col-span-full" style="color: var(--text-faint)">Memuat menu...</p>
         </div>
     </main>
 
