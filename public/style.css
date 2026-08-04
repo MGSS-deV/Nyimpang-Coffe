@@ -1,0 +1,101 @@
+/* ==========================================
+   NYIMPANG COFFEE — DESIGN TOKENS
+   Palet tenang, satu warna aksen, minim shadow.
+   ========================================== */
+
+:root {
+    --bg: #FAF8F4;
+    --surface: #FFFFFF;
+    --border: #E7E1D6;
+    --border-soft: #F0EBE1;
+
+    --text: #2B241D;
+    --text-muted: #8C8175;
+    --text-faint: #B7AE9F;
+
+    --accent: #A8613A;       /* clay/terracotta — satu-satunya warna aksen */
+    --accent-dark: #7C4526;
+    --accent-soft: #F1E2D4;  /* tint aksen, dipakai untuk badge halus */
+
+    --danger: #B5544A;       /* dipakai sangat terbatas, hanya untuk aksi batal */
+
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 22px;
+
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+}
+
+/* ---------- Komponen dasar ---------- */
+
+.surface-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.hairline-divider {
+    border-top: 1px solid var(--border-soft);
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.15s ease;
+}
+.btn-primary:hover { background: var(--accent-dark); }
+
+.btn-ghost {
+    background: transparent;
+    color: var(--accent-dark);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.btn-ghost:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+.btn-text-muted {
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+.btn-text-muted:hover { color: var(--danger); }
+
+.badge-accent {
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    display: inline-block;
+}
+.dot-accent-light { background: #DCC0AA; }
+.dot-accent-mid { background: var(--accent); }
+.dot-accent-full { background: var(--accent-dark); }
+
+/* Scrollbar tipis, biar tetap tenang di kolom kanban */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
