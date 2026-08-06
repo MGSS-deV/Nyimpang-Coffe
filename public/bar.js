@@ -7,6 +7,36 @@ let audioEnabled = true;
 
 const socket = io();
 
+// ---------- SESI LOGIN ----------
+async function loadStaffInfo() {
+    try {
+        const response = await fetch('/api/auth/me');
+        const data = await response.json();
+        const badge = document.getElementById('staff-badge');
+        if (data.success && badge) {
+            badge.innerText = `👤 ${data.user.username} (${data.user.role})`;
+        }
+    } catch (error) {
+        console.error('[AUTH] Gagal memuat info staff:', error);
+    }
+}
+
+async function logout() {
+    if (!confirm('Yakin mau keluar?')) return;
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = 'login.html';
+}
+
+// Fetch wrapper: kalau sesi habis (401), lempar balik ke halaman login
+async function authFetch(url, options) {
+    const response = await fetch(url, options);
+    if (response.status === 401) {
+        window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+        throw new Error('Sesi habis');
+    }
+    return response;
+}
+
 // ---------- NOTIFIKASI SUARA "TRING" ----------
 function playTringSound() {
     if (!audioEnabled) return;
@@ -53,7 +83,7 @@ function enableAudio() {
 // ---------- LOAD AWAL ----------
 async function loadInitialOrders() {
     try {
-        const response = await fetch('/api/orders');
+        const response = await authFetch('/api/orders');
         const data = await response.json();
         if (data.success) {
             orders = data.orders;
@@ -172,7 +202,7 @@ function renderColumn(containerId, columnOrders, action) {
 // ---------- KIRIM PERUBAHAN STATUS ----------
 async function updateOrderStatus(orderId, newStatus) {
     try {
-        const response = await fetch(`/api/orders/${orderId}`, {
+        const response = await authFetch(`/api/orders/${orderId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
@@ -186,5 +216,6 @@ async function updateOrderStatus(orderId, newStatus) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    loadStaffInfo();
     loadInitialOrders();
 });

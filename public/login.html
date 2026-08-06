@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Staff — Nyimpang Coffee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen flex items-center justify-center px-6">
+
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-8">
+            <h1 class="font-display text-2xl" style="color: var(--text)">Nyimpang Coffee</h1>
+            <p class="text-xs text-[var(--text-muted)] mt-1">Login khusus staff</p>
+        </div>
+
+        <div class="surface-card p-6">
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Username</label>
+                    <input type="text" id="login-username" required autocomplete="username"
+                        class="w-full bg-[var(--bg)] border border-[var(--border)] rounded-[var(--radius-sm)] px-3 py-2.5 text-sm focus:outline-none focus:border-[var(--accent)]"
+                        placeholder="cth: barista">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Password</label>
+                    <input type="password" id="login-password" required autocomplete="current-password"
+                        class="w-full bg-[var(--bg)] border border-[var(--border)] rounded-[var(--radius-sm)] px-3 py-2.5 text-sm focus:outline-none focus:border-[var(--accent)]"
+                        placeholder="••••••••">
+                </div>
+
+                <p id="login-error" class="hidden text-xs" style="color: var(--danger)"></p>
+
+                <button type="submit" class="btn-primary w-full py-3 text-sm">Masuk</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>
