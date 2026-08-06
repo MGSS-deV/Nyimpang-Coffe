@@ -7,6 +7,7 @@ const path = require('path');
 
 const orderRoutes = require('./routes/orderRoutes');
 const productRoutes = require('./routes/productRoutes');
+const financeRoutes = require('./routes/financeRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -22,6 +23,7 @@ app.set('io', io);
 // Routing API
 app.use('/api/orders', orderRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/finance', financeRoutes);
 
 // Log koneksi socket (opsional, membantu saat debugging realtime)
 io.on('connection', (socket) => {

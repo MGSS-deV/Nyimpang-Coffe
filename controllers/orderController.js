@@ -132,3 +132,6 @@ exports.updateOrderStatus = async (req, res) => {
         });
     }
 };
+
+// Dipakai controller lain (finance) untuk menghitung pemasukan dari pesanan Selesai
+exports.getCompletedOrders = () => orders.filter(o => o.status === 'Selesai');
