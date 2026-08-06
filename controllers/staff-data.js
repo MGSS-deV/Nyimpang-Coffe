@@ -9,8 +9,9 @@
 const bcrypt = require('bcryptjs');
 
 const rawStaff = [
-    { username: 'barista', password: 'barista123', role: 'Barista' },
-    { username: 'admin', password: 'admin123', role: 'Admin' }
+    { username: 'rispan', password: 'rispan21', role: 'Admin' },
+    { username: 'gama', password: 'maasep09', role: 'Admin' }
+    { username: 'staff1', password: 'Staffone', role: 'Admin' }
 ];
 
 // Password di-hash sekali saat server nyala, jadi tidak disimpan plain text di memori
