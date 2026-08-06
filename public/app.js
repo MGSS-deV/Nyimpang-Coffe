@@ -5,7 +5,7 @@
 let cart = [];
 let pendingOrderData = null;
 let activeOrderId = null;
-const DANA_NUMBER = "081234567890"; // Ganti nomor DANA kamu di sini
+const DANA_NUMBER = "083876266954"; // Ganti nomor DANA kamu di sini
 
 const socket = io();
 
@@ -158,7 +158,7 @@ function showPaymentModal(method, total) {
         payContent.innerHTML = `
             <p class="text-xs" style="color: var(--text-muted)">Scan QRIS menggunakan M-Banking / E-Wallet</p>
             <div class="bg-white p-3 rounded-[var(--radius-sm)] border border-[var(--border)]">
-                <img id="qris-img" src="img/qris-sample.png" alt="QRIS" class="w-40 h-40 object-contain mx-auto" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=NyimpangCoffeeQRIS';">
+                <img id="qris-img" src="assets/qris-sample.png" alt="QRIS" class="w-40 h-40 object-contain mx-auto" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=NyimpangCoffeeQRIS';">
             </div>
             <a id="download-qris-btn" href="#" onclick="downloadQRIS(event)" class="btn-ghost inline-block px-4 py-2 text-xs">
                 Simpan QR Code
