@@ -7,7 +7,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     errorEl.classList.add('hidden');
 
     try {
-        const response = await fetch('/api/auth/login', {
+        const response = await fetch('/api/auth_login.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -16,7 +16,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
         if (data.success) {
             const params = new URLSearchParams(window.location.search);
-            const redirectTo = params.get('redirect') || 'bar.html';
+            const redirectTo = params.get('redirect') || 'bar.php';
             window.location.href = redirectTo;
         } else {
             errorEl.innerText = data.message || 'Login gagal';

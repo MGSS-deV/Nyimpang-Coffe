@@ -1,13 +1,13 @@
 // ==========================================
-// NYIMPANG COFFEE - LAPORAN KEUANGAN
+// NYIMPANG COFFEE - LAPORAN KEUANGAN (VERSI PHP/POLLING)
 // ==========================================
 
-const socket = io();
+const POLL_INTERVAL_MS = 3000;
 
 // ---------- SESI LOGIN ----------
 async function loadStaffInfo() {
     try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch('/api/auth_me.php');
         const data = await response.json();
         const badge = document.getElementById('staff-badge');
         if (data.success && badge) {
@@ -20,7 +20,7 @@ async function loadStaffInfo() {
 
 async function logout() {
     if (!confirm('Yakin mau keluar?')) return;
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/auth_logout.php', { method: 'POST' });
     window.location.href = 'login.html';
 }
 
@@ -35,7 +35,7 @@ async function authFetch(url, options) {
 
 async function loadSummary() {
     try {
-        const response = await authFetch('/api/finance/summary');
+        const response = await authFetch('/api/finance_summary.php');
         const data = await response.json();
         if (!data.success) return;
 
@@ -109,7 +109,7 @@ document.getElementById('expense-form').addEventListener('submit', async (e) => 
     const category = document.getElementById('expense-category').value;
 
     try {
-        const response = await authFetch('/api/finance/expenses', {
+        const response = await authFetch('/api/finance_expense_create.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ description, amount, category })
@@ -131,7 +131,11 @@ document.getElementById('expense-form').addEventListener('submit', async (e) => 
 async function removeExpense(id) {
     if (!confirm('Hapus catatan pengeluaran ini?')) return;
     try {
-        const response = await authFetch(`/api/finance/expenses/${id}`, { method: 'DELETE' });
+        const response = await authFetch('/api/finance_expense_delete.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
         const result = await response.json();
         if (result.success) loadSummary();
     } catch (error) {
@@ -139,12 +143,8 @@ async function removeExpense(id) {
     }
 }
 
-// Realtime: refresh tiap ada pesanan baru, status berubah, atau pengeluaran diubah dari tab lain
-socket.on('pesanan-baru', loadSummary);
-socket.on('status-diperbarui', loadSummary);
-socket.on('keuangan-diperbarui', loadSummary);
-
 document.addEventListener('DOMContentLoaded', () => {
     loadStaffInfo();
     loadSummary();
+    setInterval(loadSummary, POLL_INTERVAL_MS);
 });

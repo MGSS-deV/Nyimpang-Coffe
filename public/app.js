@@ -1,13 +1,13 @@
 // ==========================================
-// NYIMPANG COFFEE - CLIENT PELANGGAN (SELF ORDER)
+// NYIMPANG COFFEE - CLIENT PELANGGAN (SELF ORDER, VERSI PHP/POLLING)
 // ==========================================
 
 let cart = [];
 let pendingOrderData = null;
 let activeOrderId = null;
-const DANA_NUMBER = "083876266954"; // Ganti nomor DANA kamu di sini
-
-const socket = io();
+let statusPollTimer = null;
+const DANA_NUMBER = "081234567890"; // Ganti nomor DANA kamu di sini
+const POLL_INTERVAL_MS = 2500; // Realtime "semu" - cek status tiap 2.5 detik
 
 // ---------- MENU (diambil dari server, bukan hardcode) ----------
 async function loadMenu() {
@@ -15,7 +15,7 @@ async function loadMenu() {
     if (!container) return;
 
     try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/products_list.php');
         const data = await response.json();
 
         if (!data.success || !data.products || data.products.length === 0) {
@@ -42,7 +42,6 @@ async function loadMenu() {
     }
 }
 
-// Event delegation: lebih aman dari onclick inline kalau nama produk ada tanda kutip
 document.addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-add-menu');
     if (!btn) return;
@@ -197,7 +196,7 @@ async function confirmPayment() {
 
 async function submitOrderToServer(payload) {
     try {
-        const response = await fetch('/api/orders', {
+        const response = await fetch('/api/orders_create.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -219,7 +218,7 @@ async function submitOrderToServer(payload) {
     }
 }
 
-// ---------- PELACAKAN STATUS REALTIME (Masuk -> Dibuat -> Siap Diambil) ----------
+// ---------- PELACAKAN STATUS (polling tiap 2.5 detik, bukan realtime instan) ----------
 function startOrderTracking(order) {
     const tracker = document.getElementById('order-tracker');
     if (!tracker) return;
@@ -227,7 +226,30 @@ function startOrderTracking(order) {
     document.getElementById('tracker-order-id').innerText = `${order.id} • ${order.customerName}`;
     updateTrackerUI(order.status);
     tracker.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    if (statusPollTimer) clearInterval(statusPollTimer);
+    statusPollTimer = setInterval(pollOrderStatus, POLL_INTERVAL_MS);
 }
+
+async function pollOrderStatus() {
+    if (!activeOrderId) return;
+    try {
+        const response = await fetch(`/api/order_status.php?id=${encodeURIComponent(activeOrderId)}`);
+        const data = await response.json();
+        if (!data.success) return;
+
+        updateTrackerUI(data.order.status);
+
+        // Pesanan sudah kelar -> nggak perlu polling terus-terusan
+        if (data.order.status === 'Selesai' || data.order.status === 'Dibatalkan') {
+            clearInterval(statusPollTimer);
+        }
+    } catch (error) {
+        console.error('Gagal polling status pesanan:', error);
+    }
+}
+
+let lastKnownStatus = null;
 
 function updateTrackerUI(status) {
     const badge = document.getElementById('tracker-status-badge');
@@ -245,9 +267,11 @@ function updateTrackerUI(status) {
             : 'w-2.5 h-2.5 mx-auto rounded-full bg-[var(--border)]';
     });
 
-    if (status === 'Siap Diambil') {
+    // Bunyi cuma sekali pas transisi ke "Siap Diambil", bukan tiap polling
+    if (status === 'Siap Diambil' && lastKnownStatus !== 'Siap Diambil') {
         playPickupSound();
     }
+    lastKnownStatus = status;
 }
 
 function playPickupSound() {
@@ -269,10 +293,3 @@ function playPickupSound() {
         console.warn('Audio belum diaktifkan browser.');
     }
 }
-
-// Dengarkan update status dari Barista secara realtime, tanpa reload
-socket.on('status-diperbarui', (payload) => {
-    const order = payload.order;
-    if (!order || order.id !== activeOrderId) return;
-    updateTrackerUI(order.status);
-});

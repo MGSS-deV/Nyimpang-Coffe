@@ -1,16 +1,16 @@
 // ==========================================
-// NYIMPANG COFFEE - DASHBOARD BARISTA (REALTIME)
+// NYIMPANG COFFEE - DASHBOARD BARISTA (VERSI PHP/POLLING)
 // ==========================================
 
 let orders = [];
 let audioEnabled = true;
-
-const socket = io();
+let knownOrderIds = new Set(); // Buat deteksi pesanan baru antar-polling
+const POLL_INTERVAL_MS = 2500;
 
 // ---------- SESI LOGIN ----------
 async function loadStaffInfo() {
     try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch('/api/auth_me.php');
         const data = await response.json();
         const badge = document.getElementById('staff-badge');
         if (data.success && badge) {
@@ -23,7 +23,7 @@ async function loadStaffInfo() {
 
 async function logout() {
     if (!confirm('Yakin mau keluar?')) return;
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/auth_logout.php', { method: 'POST' });
     window.location.href = 'login.html';
 }
 
@@ -48,7 +48,7 @@ function playTringSound() {
         const osc1 = ctx.createOscillator();
         const gain1 = ctx.createGain();
         osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(1318.51, ctx.currentTime); // E6
+        osc1.frequency.setValueAtTime(1318.51, ctx.currentTime);
         gain1.gain.setValueAtTime(0.3, ctx.currentTime);
         gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
         osc1.connect(gain1);
@@ -60,7 +60,7 @@ function playTringSound() {
             const osc2 = ctx.createOscillator();
             const gain2 = ctx.createGain();
             osc2.type = 'sine';
-            osc2.frequency.setValueAtTime(1760, ctx.currentTime); // A6
+            osc2.frequency.setValueAtTime(1760, ctx.currentTime);
             gain2.gain.setValueAtTime(0.35, ctx.currentTime);
             gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
             osc2.connect(gain2);
@@ -80,51 +80,35 @@ function enableAudio() {
     if (audioEnabled) playTringSound();
 }
 
-// ---------- LOAD AWAL ----------
-async function loadInitialOrders() {
+// ---------- POLLING PESANAN (ganti Socket.io) ----------
+async function fetchOrders() {
     try {
-        const response = await authFetch('/api/orders');
+        const response = await authFetch('/api/orders_list.php');
         const data = await response.json();
-        if (data.success) {
-            orders = data.orders;
-            updateStats(data.stats);
-            renderBoard();
+        if (!data.success) return;
+
+        // Deteksi pesanan baru yang belum pernah kelihatan -> bunyi "tring"
+        const isFirstLoad = knownOrderIds.size === 0;
+        const newOnes = data.orders.filter(o => !knownOrderIds.has(o.id));
+        if (!isFirstLoad && newOnes.length > 0) {
+            playTringSound();
         }
+        data.orders.forEach(o => knownOrderIds.add(o.id));
+
+        orders = data.orders;
+        updateStats(data.stats);
+        renderBoard();
     } catch (error) {
-        console.error('[BARISTA ERROR] Gagal memuat pesanan awal:', error);
+        console.error('[BARISTA ERROR] Gagal memuat pesanan:', error);
     }
 }
 
-// ---------- REALTIME: PESANAN BARU ----------
-socket.on('pesanan-baru', (payload) => {
-    const { order, stats } = payload;
-    orders.unshift(order);
-    playTringSound();
-    updateStats(stats);
-    renderBoard();
-});
-
-// ---------- REALTIME: STATUS DIPERBARUI ----------
-socket.on('status-diperbarui', (payload) => {
-    const { order, stats } = payload;
-    const idx = orders.findIndex(o => o.id === order.id);
-    if (idx !== -1) orders[idx] = order;
-    updateStats(stats);
-    renderBoard();
-});
-
-// ---------- STATISTIK ----------
 function updateStats(stats) {
     if (!stats) return;
-    const revEl = document.getElementById('stat-revenue');
-    const pendEl = document.getElementById('stat-pending');
-    const compEl = document.getElementById('stat-completed');
-    const totEl = document.getElementById('stat-total');
-
-    if (revEl) revEl.innerText = `Rp ${stats.totalRevenue.toLocaleString('id-ID')}`;
-    if (pendEl) pendEl.innerText = stats.pendingOrders;
-    if (compEl) compEl.innerText = stats.completedOrders;
-    if (totEl) totEl.innerText = stats.totalOrders;
+    document.getElementById('stat-revenue').innerText = `Rp ${stats.totalRevenue.toLocaleString('id-ID')}`;
+    document.getElementById('stat-pending').innerText = stats.pendingOrders;
+    document.getElementById('stat-completed').innerText = stats.completedOrders;
+    document.getElementById('stat-total').innerText = stats.totalOrders;
 }
 
 // ---------- PAPAN KANBAN 3 KOLOM ----------
@@ -202,20 +186,24 @@ function renderColumn(containerId, columnOrders, action) {
 // ---------- KIRIM PERUBAHAN STATUS ----------
 async function updateOrderStatus(orderId, newStatus) {
     try {
-        const response = await authFetch(`/api/orders/${orderId}`, {
-            method: 'PATCH',
+        const response = await authFetch('/api/orders_update.php', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus })
+            body: JSON.stringify({ id: orderId, status: newStatus })
         });
         const result = await response.json();
-        if (!result.success) alert('Gagal memperbarui status: ' + result.message);
-        // Render terjadi lewat broadcast 'status-diperbarui' dari server.
+        if (!result.success) {
+            alert('Gagal memperbarui status: ' + result.message);
+        }
+        fetchOrders(); // Langsung refresh, nggak nunggu polling berikutnya
     } catch (error) {
         console.error('[BARISTA ERROR]', error);
     }
 }
 
+// ---------- INISIALISASI ----------
 document.addEventListener('DOMContentLoaded', () => {
     loadStaffInfo();
-    loadInitialOrders();
+    fetchOrders();
+    setInterval(fetchOrders, POLL_INTERVAL_MS);
 });

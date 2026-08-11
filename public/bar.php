@@ -1,0 +1,100 @@
+<?php require __DIR__ . "/../includes/auth.php"; requireAuthPage(); ?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyimpang Coffee — Dashboard Barista</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="pb-20">
+
+    <!-- HEADER -->
+    <header class="bg-[var(--surface)] border-b border-[var(--border)] sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-6 py-5 flex justify-between items-center">
+            <div>
+                <h1 class="font-display text-xl tracking-tight" style="color: var(--text)">Nyimpang Coffee</h1>
+                <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Dashboard Barista</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="staff-badge" class="text-xs text-[var(--text-muted)] px-2"></span>
+                <a href="keuangan.php" class="btn-ghost px-3 py-2 text-xs">📊 Laporan Keuangan</a>
+                <button onclick="enableAudio()" id="audio-btn" class="btn-ghost px-3 py-2 text-xs">🔊 Suara Aktif</button>
+                <div class="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] px-3 py-2">
+                    <span class="w-1.5 h-1.5 rounded-full dot-accent-full"></span> Live
+                </div>
+                <button onclick="logout()" class="btn-text-muted text-xs px-2 py-2">Keluar</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-8 space-y-8">
+
+        <!-- STATISTIK RINGKAS (satu baris, dipisah garis tipis — bukan 4 kotak berat) -->
+        <div class="surface-card px-6 py-5 flex flex-wrap gap-y-4">
+            <div class="flex-1 min-w-[140px] px-2">
+                <p class="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Pemasukan</p>
+                <h3 id="stat-revenue" class="font-display text-lg mt-1">Rp 0</h3>
+            </div>
+            <div class="flex-1 min-w-[140px] px-2 border-l border-[var(--border-soft)]">
+                <p class="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Perlu Diproses</p>
+                <h3 id="stat-pending" class="font-display text-lg mt-1">0</h3>
+            </div>
+            <div class="flex-1 min-w-[140px] px-2 border-l border-[var(--border-soft)]">
+                <p class="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Selesai</p>
+                <h3 id="stat-completed" class="font-display text-lg mt-1">0</h3>
+            </div>
+            <div class="flex-1 min-w-[140px] px-2 border-l border-[var(--border-soft)]">
+                <p class="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Total Pesanan</p>
+                <h3 id="stat-total" class="font-display text-lg mt-1">0</h3>
+            </div>
+        </div>
+
+        <!-- PAPAN ANTREAN: MASUK -> DIBUAT -> SIAP DIAMBIL -->
+        <div>
+            <p class="text-[11px] tracking-wide text-[var(--text-muted)] uppercase mb-1">Antrean</p>
+            <h2 class="font-display text-xl mb-5">Papan Pesanan</h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+                <!-- KOLOM: MASUK -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3 px-1">
+                        <span class="dot dot-accent-light"></span>
+                        <h3 class="text-xs font-semibold uppercase tracking-wide" style="color: var(--text-muted)">Masuk</h3>
+                        <span id="count-masuk" class="text-xs text-[var(--text-faint)]">0</span>
+                    </div>
+                    <div id="col-masuk" class="space-y-3 min-h-[100px]"></div>
+                </div>
+
+                <!-- KOLOM: DIBUAT -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3 px-1">
+                        <span class="dot dot-accent-mid"></span>
+                        <h3 class="text-xs font-semibold uppercase tracking-wide" style="color: var(--text-muted)">Dibuat</h3>
+                        <span id="count-dibuat" class="text-xs text-[var(--text-faint)]">0</span>
+                    </div>
+                    <div id="col-dibuat" class="space-y-3 min-h-[100px]"></div>
+                </div>
+
+                <!-- KOLOM: SIAP DIAMBIL -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3 px-1">
+                        <span class="dot dot-accent-full"></span>
+                        <h3 class="text-xs font-semibold uppercase tracking-wide" style="color: var(--text-muted)">Siap Diambil</h3>
+                        <span id="count-siap" class="text-xs text-[var(--text-faint)]">0</span>
+                    </div>
+                    <div id="col-siap" class="space-y-3 min-h-[100px]"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script src="bar.js"></script>
+</body>
+</html>
