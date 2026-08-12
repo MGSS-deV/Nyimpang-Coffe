@@ -62,6 +62,47 @@ nyimpang-coffee-php/
     └── api/                <- seluruh endpoint backend (dipanggil via fetch)
 ```
 
+## Deploy ke Railway
+
+Railway butuh 2 file tambahan yang sudah disiapkan di project ini:
+- **`Procfile`** — perintah start (`php -S 0.0.0.0:$PORT -t public`). Railway kasih port secara dinamis lewat variabel `$PORT`, jadi jangan hardcode port sendiri.
+- **`composer.json`** — biar Railway/Nixpacks otomatis ngenalin ini sebagai project PHP.
+
+Langkah-langkah:
+
+1. **Push project ini** (folder `nyimpang-coffee-php`, termasuk `Procfile` &
+   `composer.json` di root) ke GitHub, lalu deploy repo itu di Railway.
+
+2. **Tambah database MySQL**: di project Railway kamu, klik **New →
+   Database → Add MySQL**. Railway otomatis bikin service MySQL terpisah.
+
+3. **Hubungkan variabel database**: buka service PHP kamu → tab
+   **Variables** → tambahkan variabel `DB_HOST`, `DB_USER`, `DB_PASSWORD`,
+   `DB_NAME` yang **reference** ke service MySQL (klik "Add Reference Variable"
+   atau ketik `${{MySQL.MYSQLHOST}}`, `${{MySQL.MYSQLUSER}}`, dst).
+   Kalau males, sebenarnya nggak perlu diisi manual — `config/db.php` sudah
+   otomatis fallback ke variabel bawaan Railway (`MYSQLHOST`, `MYSQLUSER`,
+   `MYSQLPASSWORD`, `MYSQLDATABASE`, `MYSQLPORT`) kalau `DB_*` kosong.
+
+4. **Import skema & seed data** — Railway nggak jalanin `database.sql`/`seed.php`
+   otomatis. Pakai Railway CLI:
+   ```
+   railway run mysql -h $MYSQLHOST -u $MYSQLUSER -p$MYSQLPASSWORD $MYSQLDATABASE < database.sql
+   railway run php seed.php
+   ```
+   (atau connect manual pakai kredensial dari tab Variables service MySQL,
+   lewat TablePlus/Adminer/DBeaver dari komputer kamu.)
+
+5. Redeploy kalau perlu, lalu buka domain Railway-nya.
+
+**Kalau masih "Application failed to respond"**: buka tab **Deployments →
+Deploy Logs** di Railway, itu bakal nunjukin persis errornya di mana
+(biasanya gagal konek DB kalau env var belum diisi bener).
+
+
+Edit langsung tabel `products` di database (lewat phpMyAdmin, Adminer, atau
+`mysql` CLI) — nggak perlu ubah kode.
+
 ## Nambah/ubah menu
 Edit langsung tabel `products` di database (lewat phpMyAdmin, Adminer, atau
 `mysql` CLI) — nggak perlu ubah kode.

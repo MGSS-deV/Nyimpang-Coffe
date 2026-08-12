@@ -17,14 +17,19 @@ function loadEnv($path)
 
 loadEnv(__DIR__ . '/../.env');
 
-$host = getenv('DB_HOST') ?: 'localhost';
-$user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASSWORD') ?: '';
-$name = getenv('DB_NAME') ?: 'nyimpang_coffee';
+// Railway (dan beberapa PaaS lain) nyuntik variabel MySQL otomatis lewat
+// plugin database, tapi nama variabelnya beda dari .env kustom kita
+// (MYSQLHOST bukan DB_HOST). Di sini kita coba DB_* dulu, baru fallback
+// ke punya Railway kalau DB_* nggak diisi manual.
+$host = getenv('DB_HOST') ?: (getenv('MYSQLHOST') ?: 'localhost');
+$user = getenv('DB_USER') ?: (getenv('MYSQLUSER') ?: 'root');
+$pass = getenv('DB_PASSWORD') ?: (getenv('MYSQLPASSWORD') ?: '');
+$name = getenv('DB_NAME') ?: (getenv('MYSQLDATABASE') ?: 'nyimpang_coffee');
+$port = getenv('DB_PORT') ?: (getenv('MYSQLPORT') ?: '3306');
 
 try {
     $pdo = new PDO(
-        "mysql:host={$host};dbname={$name};charset=utf8mb4",
+        "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4",
         $user,
         $pass,
         [
@@ -37,7 +42,7 @@ try {
     header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
-        'message' => 'Gagal konek ke database. Cek konfigurasi .env kamu.',
+        'message' => 'Gagal konek ke database. Cek variabel DB_HOST/DB_USER/dll di Railway atau .env kamu.',
         'error' => $e->getMessage()
     ]);
     exit;

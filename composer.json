@@ -1,0 +1,9 @@
+{
+    "name": "nyimpang-coffee/app",
+    "description": "Nyimpang Coffee - Self Ordering & Dashboard Barista",
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*"
+    }
+}
