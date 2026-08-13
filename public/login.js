@@ -16,9 +16,6 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
         if (data.success) {
             const params = new URLSearchParams(window.location.search);
-            // FITUR BARU: setelah login, arahkan ke Dashboard Ringkasan/Analitik
-            // (bukan langsung ke papan barista), jadi staff langsung lihat
-            // gambaran umum toko begitu masuk.
             const redirectTo = params.get('redirect') || 'dashboard.php';
             window.location.href = redirectTo;
         } else {

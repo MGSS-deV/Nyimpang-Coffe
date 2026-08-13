@@ -18,7 +18,7 @@ if ($description === '' || $amount <= 0) {
     jsonResponse(['success' => false, 'message' => 'Deskripsi dan nominal wajib diisi dengan benar'], 400);
 }
 
-$id = 'EXP-' . time() . random_int(100, 999);
+$id = 'EXP-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
 
 $stmt = $pdo->prepare(
     "INSERT INTO expenses (id, description, amount, category) VALUES (:id, :description, :amount, :category)"

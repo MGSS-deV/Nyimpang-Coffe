@@ -1,7 +1,7 @@
 <?php
-// FITUR BARU: Dashboard Ringkasan/Analitik — halaman awal setelah login.
 require __DIR__ . "/../includes/auth.php";
 requireAuthPage();
+$activePage = 'dashboard';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -19,72 +19,61 @@ requireAuthPage();
 
     <!-- HEADER -->
     <header class="bg-[var(--surface)] border-b border-[var(--border)] sticky top-0 z-30">
-        <div class="max-w-6xl mx-auto px-6 py-5 flex flex-wrap justify-between items-center gap-3">
-            <div>
-                <h1 class="font-display text-xl tracking-tight" style="color: var(--text)">Nyimpang Coffee</h1>
-                <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Dashboard Ringkasan</p>
+        <div class="max-w-6xl mx-auto px-6 py-5 flex flex-col gap-4">
+            <div class="flex justify-between items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="font-display text-xl tracking-tight" style="color: var(--text)">Nyimpang Coffee</h1>
+                    <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Dashboard Ringkasan</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="staff-badge" class="text-xs text-[var(--text-muted)] px-2"></span>
+                    <button onclick="logout()" class="btn-text-muted text-xs px-2 py-2">Keluar</button>
+                </div>
             </div>
-            <nav class="flex items-center gap-1 text-xs flex-wrap">
-                <a href="dashboard.php" class="nav-link nav-link-active">Dashboard</a>
-                <a href="bar.php" class="nav-link">Papan Pesanan</a>
-                <a href="riwayat.php" class="nav-link">Riwayat</a>
-                <a href="menu.php" id="nav-menu-link" class="nav-link hidden">Menu</a>
-                <a href="keuangan.php" class="nav-link">Laporan Keuangan</a>
-            </nav>
-            <div class="flex items-center gap-2">
-                <span id="staff-badge" class="text-xs text-[var(--text-muted)] px-2"></span>
-                <button onclick="logout()" class="btn-text-muted text-xs px-2 py-2">Keluar</button>
-            </div>
+            <?php require __DIR__ . '/../includes/nav.php'; ?>
         </div>
     </header>
 
     <main class="max-w-6xl mx-auto px-6 py-8 space-y-8">
 
-        <div class="flex items-center justify-between flex-wrap gap-3">
-            <div>
-                <p class="text-[11px] tracking-wide text-[var(--text-muted)] uppercase mb-1">Analitik</p>
-                <h2 class="font-display text-xl">Ringkasan Penjualan</h2>
-            </div>
-            <div class="flex gap-2">
-                <button data-days="7" class="range-btn range-btn-active">7 Hari</button>
-                <button data-days="14" class="range-btn">14 Hari</button>
-                <button data-days="30" class="range-btn">30 Hari</button>
-            </div>
-        </div>
-
-        <!-- RINGKASAN ANGKA -->
-        <div class="surface-card px-6 py-5 flex flex-wrap gap-y-4">
-            <div class="flex-1 min-w-[160px] px-2">
-                <p class="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Total Penjualan</p>
-                <h3 id="stat-range-revenue" class="font-display text-lg mt-1">Rp 0</h3>
-            </div>
-            <div class="flex-1 min-w-[160px] px-2 border-l border-[var(--border-soft)]">
-                <p class="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Pesanan Selesai</p>
-                <h3 id="stat-range-orders" class="font-display text-lg mt-1">0</h3>
-            </div>
-            <div class="flex-1 min-w-[160px] px-2 border-l border-[var(--border-soft)]">
-                <p class="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Rata-rata / Pesanan</p>
-                <h3 id="stat-range-avg" class="font-display text-lg mt-1">Rp 0</h3>
-            </div>
-        </div>
-
-        <!-- GRAFIK PENJUALAN HARIAN + MENU TERLARIS -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="surface-card p-6 lg:col-span-2">
-                <h3 class="font-display text-base mb-4">Penjualan Harian</h3>
-                <canvas id="sales-chart" height="130"></canvas>
+        <!-- TOGGLE HARIAN / MINGGUAN -->
+        <div>
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-[11px] tracking-wide text-[var(--text-muted)] uppercase mb-1">Penjualan</p>
+                    <h2 class="font-display text-xl">Grafik Pemasukan</h2>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button id="btn-daily" onclick="switchSalesView('daily')" class="btn-primary px-3 py-2 text-xs">Harian</button>
+                    <button id="btn-weekly" onclick="switchSalesView('weekly')" class="btn-ghost px-3 py-2 text-xs">Mingguan</button>
+                </div>
             </div>
             <div class="surface-card p-6">
-                <h3 class="font-display text-base mb-4">Menu Terlaris</h3>
-                <div id="top-items-list"></div>
+                <canvas id="sales-chart" height="90"></canvas>
             </div>
         </div>
 
-        <!-- JAM PALING RAMAI -->
-        <div class="surface-card p-6">
-            <h3 class="font-display text-base mb-1">Jam Paling Ramai</h3>
-            <p class="text-[11px] mb-4" style="color: var(--text-faint)">Jumlah pesanan Selesai berdasarkan jam pemesanan (WIB)</p>
-            <canvas id="hours-chart" height="90"></canvas>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- MENU TERLARIS -->
+            <div>
+                <p class="text-[11px] tracking-wide text-[var(--text-muted)] uppercase mb-1">Menu Terlaris</p>
+                <h2 class="font-display text-xl mb-4">Top 5 Produk</h2>
+                <div class="surface-card p-6">
+                    <canvas id="top-products-chart" height="200"></canvas>
+                    <p id="top-products-empty" class="hidden text-center text-xs py-8" style="color: var(--text-faint)">Belum ada pesanan Selesai untuk dianalisis.</p>
+                </div>
+            </div>
+
+            <!-- JAM PALING RAMAI -->
+            <div>
+                <p class="text-[11px] tracking-wide text-[var(--text-muted)] uppercase mb-1">Pola Kedatangan (30 hari)</p>
+                <h2 class="font-display text-xl mb-4">Jam Paling Ramai</h2>
+                <div class="surface-card p-6">
+                    <canvas id="busy-hours-chart" height="200"></canvas>
+                </div>
+            </div>
+
         </div>
 
     </main>

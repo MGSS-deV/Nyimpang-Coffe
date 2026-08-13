@@ -3,11 +3,6 @@
 -- ==========================================
 -- Import ini sekali di awal lewat phpMyAdmin / mysql CLI:
 --   mysql -u root -p nyimpang_coffee < database.sql
---
--- Kalau kamu UPDATE dari versi lama (database sudah pernah dibuat
--- sebelumnya), JANGAN jalankan file ini lagi — pakai migration_v2.sql saja
--- supaya data lama nggak tertimpa. Lihat README bagian "Update dari versi
--- lama".
 
 CREATE TABLE IF NOT EXISTS staff (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -23,9 +18,8 @@ CREATE TABLE IF NOT EXISTS products (
     price INT NOT NULL,
     category VARCHAR(50) DEFAULT 'Lainnya',
     icon VARCHAR(10) DEFAULT '☕',
-    -- BARU (v2): dipakai fitur Manajemen Menu, buat nonaktifkan menu tanpa
-    -- hapus permanen. Menu nonaktif otomatis hilang dari halaman pelanggan.
-    is_active TINYINT(1) NOT NULL DEFAULT 1
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS orders (
@@ -55,3 +49,4 @@ CREATE TABLE IF NOT EXISTS expenses (
 --
 -- Setelah import file ini, jalankan:
 --   php seed.php
+

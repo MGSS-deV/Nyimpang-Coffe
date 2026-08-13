@@ -16,10 +16,25 @@ function formatOrderRow($row)
         'totalAmount' => (int) $row['total_amount'],
         'status' => $row['status'],
         'createdAt' => date('H.i.s', strtotime($row['created_at'])),
-        // FITUR BARU: dipakai halaman Riwayat, butuh tanggal lengkap bukan cuma jam
-        // (createdAt yang lama sengaja dipertahankan apa adanya biar app.js/bar.js lama tetap jalan).
-        'createdAtFull' => date('d/m/Y H.i', strtotime($row['created_at'])),
         'updatedAt' => $row['updated_at'] ? date('H.i.s', strtotime($row['updated_at'])) : null
+    ];
+}
+
+// Sama seperti formatOrderRow, tapi createdAt/updatedAt pakai tanggal LENGKAP
+// (bukan cuma jam) — dipakai halaman Riwayat yang nampilin data lintas hari.
+function formatOrderRowFull($row)
+{
+    return [
+        'id' => $row['id'],
+        'customerName' => $row['customer_name'],
+        'orderType' => $row['order_type'],
+        'tableNo' => $row['table_no'],
+        'paymentMethod' => $row['payment_method'],
+        'items' => json_decode($row['items'], true),
+        'totalAmount' => (int) $row['total_amount'],
+        'status' => $row['status'],
+        'createdAt' => date('d/m/Y H.i', strtotime($row['created_at'])),
+        'updatedAt' => $row['updated_at'] ? date('d/m/Y H.i', strtotime($row['updated_at'])) : null
     ];
 }
 
@@ -49,5 +64,7 @@ function computeOrderStats($pdo)
 
 function generateOrderId()
 {
-    return 'ORD-' . time() . random_int(100, 999);
+    // bin2hex(random_bytes(4)) = 8 karakter hex acak, praktis nggak mungkin
+    // tabrakan meskipun banyak pesanan masuk di detik yang sama.
+    return 'ORD-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
 }

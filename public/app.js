@@ -33,7 +33,7 @@ async function loadMenu() {
                         <span class="text-sm font-semibold" style="color: var(--accent-dark)">Rp ${p.price.toLocaleString('id-ID')}</span>
                     </div>
                 </div>
-                <button data-name="${p.name}" data-price="${p.price}" class="btn-add-menu btn-ghost text-xs px-3 py-2 shrink-0">+ Tambah</button>
+                <button data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" class="btn-add-menu btn-ghost text-xs px-3 py-2 shrink-0">+ Tambah</button>
             </div>
         `).join('');
     } catch (error) {
@@ -45,18 +45,21 @@ async function loadMenu() {
 document.addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-add-menu');
     if (!btn) return;
-    addToCart(btn.dataset.name, Number(btn.dataset.price));
+    addToCart(Number(btn.dataset.id), btn.dataset.name, Number(btn.dataset.price));
 });
 
 document.addEventListener('DOMContentLoaded', loadMenu);
 
 // ---------- KERANJANG ----------
-function addToCart(name, price) {
-    const existingItem = cart.find(item => item.name === name);
+// Catatan: productId dikirim ke server saat checkout supaya harga selalu
+// diverifikasi ulang dari database (lihat orders_create.php). name & price
+// di sini cuma buat tampilan keranjang, bukan yang dipakai buat hitung final.
+function addToCart(productId, name, price) {
+    const existingItem = cart.find(item => item.productId === productId);
     if (existingItem) {
         existingItem.qty += 1;
     } else {
-        cart.push({ id: 'ITM-' + Date.now(), name, price, qty: 1 });
+        cart.push({ productId, name, price, qty: 1 });
     }
     updateCartUI();
 }
@@ -129,8 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 orderType,
                 tableNo,
                 paymentMethod,
-                items: cart,
-                totalAmount: totalPrice
+                // Cuma kirim productId + qty. Nama & harga final dihitung
+                // ulang di server dari database (lihat orders_create.php).
+                items: cart.map(item => ({ id: item.productId, qty: item.qty }))
             };
 
             if (paymentMethod === 'Kasir / Cash') {

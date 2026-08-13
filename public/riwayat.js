@@ -1,10 +1,18 @@
 // ==========================================
-// NYIMPANG COFFEE - RIWAYAT PESANAN + FILTER (FITUR BARU)
+// NYIMPANG COFFEE - RIWAYAT PESANAN
 // ==========================================
 
 let currentPage = 1;
+let totalPages = 1;
 
-// ---------- SESI LOGIN ----------
+const STATUS_BADGE_STYLE = {
+    'Masuk': 'background: var(--accent-soft); color: var(--accent-dark)',
+    'Dibuat': 'background: var(--accent-soft); color: var(--accent-dark)',
+    'Siap Diambil': 'background: var(--accent); color: white',
+    'Selesai': 'background: var(--border-soft); color: var(--text-muted)',
+    'Dibatalkan': 'background: #fbe9e7; color: var(--danger)'
+};
+
 async function loadStaffInfo() {
     try {
         const response = await fetch('/api/auth_me.php');
@@ -12,10 +20,6 @@ async function loadStaffInfo() {
         const badge = document.getElementById('staff-badge');
         if (data.success && badge) {
             badge.innerText = `👤 ${data.user.username} (${data.user.role})`;
-        }
-        const menuLink = document.getElementById('nav-menu-link');
-        if (menuLink && data.success && data.user.role === 'Admin') {
-            menuLink.classList.remove('hidden');
         }
     } catch (error) {
         console.error('[AUTH] Gagal memuat info staff:', error);
@@ -37,97 +41,89 @@ async function authFetch(url, options) {
     return response;
 }
 
-// ---------- FILTER & MUAT DATA ----------
-function buildQuery() {
-    const params = new URLSearchParams();
+async function loadHistory() {
     const status = document.getElementById('filter-status').value;
     const dateFrom = document.getElementById('filter-date-from').value;
     const dateTo = document.getElementById('filter-date-to').value;
-    const q = document.getElementById('filter-search').value;
 
+    const params = new URLSearchParams();
     if (status) params.set('status', status);
     if (dateFrom) params.set('date_from', dateFrom);
     if (dateTo) params.set('date_to', dateTo);
-    if (q) params.set('q', q);
     params.set('page', currentPage);
 
-    return params.toString();
-}
-
-async function loadHistory() {
     try {
-        const response = await authFetch(`/api/orders_history.php?${buildQuery()}`);
+        const response = await authFetch(`/api/orders_history.php?${params.toString()}`);
         const data = await response.json();
         if (!data.success) return;
 
         renderTable(data.orders);
         renderPagination(data.pagination);
     } catch (error) {
-        console.error('[RIWAYAT ERROR] Gagal memuat riwayat:', error);
+        console.error('[RIWAYAT ERROR]', error);
     }
 }
 
 function renderTable(orders) {
-    const container = document.getElementById('history-table-body');
-    if (!container) return;
+    const tbody = document.getElementById('history-tbody');
+    const emptyEl = document.getElementById('history-empty');
 
     if (orders.length === 0) {
-        container.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-xs" style="color: var(--text-faint)">Tidak ada pesanan yang cocok dengan filter ini.</td></tr>`;
+        tbody.innerHTML = '';
+        emptyEl.classList.remove('hidden');
         return;
     }
+    emptyEl.classList.add('hidden');
 
-    container.innerHTML = orders.map(o => `
-        <tr class="hairline-divider">
-            <td class="py-3 px-3 text-xs" style="color: var(--text-faint)">${o.id}</td>
-            <td class="py-3 px-3 text-xs font-medium" style="color: var(--text)">${o.customerName}</td>
-            <td class="py-3 px-3 text-xs" style="color: var(--text-muted)">${o.orderType} • Meja ${o.tableNo}</td>
-            <td class="py-3 px-3 text-xs" style="color: var(--text-muted)">${o.createdAtFull}</td>
-            <td class="py-3 px-3 text-xs font-semibold" style="color: var(--accent-dark)">Rp ${o.totalAmount.toLocaleString('id-ID')}</td>
-            <td class="py-3 px-3"><span class="badge-accent px-2 py-1 rounded-full text-[10px]">${o.status}</span></td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = orders.map(order => {
+        const itemSummary = order.items.map(i => `${i.name} x${i.qty}`).join(', ');
+        const badgeStyle = STATUS_BADGE_STYLE[order.status] || '';
+        return `
+            <tr class="hairline-divider">
+                <td class="px-4 py-3" style="color: var(--text-muted)">${order.createdAt}</td>
+                <td class="px-4 py-3" style="color: var(--text-faint)">${order.id}</td>
+                <td class="px-4 py-3 font-medium" style="color: var(--text)">${order.customerName}</td>
+                <td class="px-4 py-3" style="color: var(--text-muted)" title="${itemSummary}">${truncate(itemSummary, 40)}</td>
+                <td class="px-4 py-3 text-right font-semibold" style="color: var(--accent-dark)">Rp ${order.totalAmount.toLocaleString('id-ID')}</td>
+                <td class="px-4 py-3">
+                    <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold" style="${badgeStyle}">${order.status}</span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function truncate(text, max) {
+    return text.length > max ? text.slice(0, max) + '…' : text;
 }
 
 function renderPagination(pagination) {
-    const info = document.getElementById('pagination-info');
-    if (info) {
-        info.innerText = pagination.total === 0
-            ? 'Tidak ada data'
-            : `Halaman ${pagination.page} dari ${pagination.totalPages} • ${pagination.total} pesanan ditemukan`;
-    }
+    currentPage = pagination.page;
+    totalPages = pagination.totalPages;
 
-    const prevBtn = document.getElementById('btn-prev');
-    const nextBtn = document.getElementById('btn-next');
-    if (prevBtn) prevBtn.disabled = pagination.page <= 1;
-    if (nextBtn) nextBtn.disabled = pagination.page >= pagination.totalPages;
+    document.getElementById('pagination-info').innerText =
+        `Halaman ${pagination.page} dari ${pagination.totalPages} (${pagination.totalRows} total pesanan)`;
+
+    document.getElementById('btn-prev-page').disabled = currentPage <= 1;
+    document.getElementById('btn-next-page').disabled = currentPage >= totalPages;
+    document.getElementById('btn-prev-page').style.opacity = currentPage <= 1 ? 0.4 : 1;
+    document.getElementById('btn-next-page').style.opacity = currentPage >= totalPages ? 0.4 : 1;
 }
 
-// ---------- INISIALISASI ----------
+function changePage(delta) {
+    const newPage = currentPage + delta;
+    if (newPage < 1 || newPage > totalPages) return;
+    currentPage = newPage;
+    loadHistory();
+}
+
+document.getElementById('filter-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    currentPage = 1;
+    loadHistory();
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     loadStaffInfo();
     loadHistory();
-
-    document.getElementById('filter-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        currentPage = 1;
-        loadHistory();
-    });
-
-    document.getElementById('btn-reset').addEventListener('click', () => {
-        document.getElementById('filter-form').reset();
-        currentPage = 1;
-        loadHistory();
-    });
-
-    document.getElementById('btn-prev').addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            loadHistory();
-        }
-    });
-
-    document.getElementById('btn-next').addEventListener('click', () => {
-        currentPage++;
-        loadHistory();
-    });
 });

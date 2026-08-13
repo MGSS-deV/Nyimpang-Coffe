@@ -1,4 +1,8 @@
-<?php require __DIR__ . "/../includes/auth.php"; requireAuthPage(); ?>
+<?php
+require __DIR__ . "/../includes/auth.php";
+requireAuthPage();
+$activePage = 'bar';
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -14,27 +18,22 @@
 
     <!-- HEADER -->
     <header class="bg-[var(--surface)] border-b border-[var(--border)] sticky top-0 z-30">
-        <div class="max-w-6xl mx-auto px-6 py-5 flex flex-wrap justify-between items-center gap-3">
-            <div>
-                <h1 class="font-display text-xl tracking-tight" style="color: var(--text)">Nyimpang Coffee</h1>
-                <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Dashboard Barista</p>
-            </div>
-            <!-- FITUR BARU: navigasi antar-halaman staff -->
-            <nav class="flex items-center gap-1 text-xs flex-wrap">
-                <a href="dashboard.php" class="nav-link">Dashboard</a>
-                <a href="bar.php" class="nav-link nav-link-active">Papan Pesanan</a>
-                <a href="riwayat.php" class="nav-link">Riwayat</a>
-                <a href="menu.php" id="nav-menu-link" class="nav-link hidden">Menu</a>
-                <a href="keuangan.php" class="nav-link">Laporan Keuangan</a>
-            </nav>
-            <div class="flex items-center gap-2">
-                <span id="staff-badge" class="text-xs text-[var(--text-muted)] px-2"></span>
-                <button onclick="enableAudio()" id="audio-btn" class="btn-ghost px-3 py-2 text-xs">🔊 Suara Aktif</button>
-                <div class="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] px-3 py-2">
-                    <span class="w-1.5 h-1.5 rounded-full dot-accent-full"></span> Live
+        <div class="max-w-6xl mx-auto px-6 py-5 flex flex-col gap-4">
+            <div class="flex justify-between items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="font-display text-xl tracking-tight" style="color: var(--text)">Nyimpang Coffee</h1>
+                    <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Dashboard Barista</p>
                 </div>
-                <button onclick="logout()" class="btn-text-muted text-xs px-2 py-2">Keluar</button>
+                <div class="flex items-center gap-2">
+                    <span id="staff-badge" class="text-xs text-[var(--text-muted)] px-2"></span>
+                    <button onclick="enableAudio()" id="audio-btn" class="btn-ghost px-3 py-2 text-xs">🔊 Suara Aktif</button>
+                    <div class="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] px-3 py-2">
+                        <span class="w-1.5 h-1.5 rounded-full dot-accent-full"></span> Live
+                    </div>
+                    <button onclick="logout()" class="btn-text-muted text-xs px-2 py-2">Keluar</button>
+                </div>
             </div>
+            <?php require __DIR__ . '/../includes/nav.php'; ?>
         </div>
     </header>
 

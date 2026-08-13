@@ -1,11 +1,20 @@
 // ==========================================
-// NYIMPANG COFFEE - DASHBOARD RINGKASAN/ANALITIK (FITUR BARU)
+// NYIMPANG COFFEE - DASHBOARD ANALITIK
 // ==========================================
 
+let analyticsData = null;
 let salesChart = null;
-let hoursChart = null;
+let topProductsChart = null;
+let busyHoursChart = null;
+let currentSalesView = 'daily';
 
-// ---------- SESI LOGIN (pola sama dengan halaman staff lain) ----------
+// Ambil warna asli dari CSS variables (canvas nggak ngerti var() langsung)
+const styles = getComputedStyle(document.documentElement);
+const COLOR_ACCENT = styles.getPropertyValue('--accent').trim();
+const COLOR_ACCENT_SOFT = styles.getPropertyValue('--accent-soft').trim();
+const COLOR_TEXT_MUTED = styles.getPropertyValue('--text-muted').trim();
+const COLOR_BORDER = styles.getPropertyValue('--border-soft').trim();
+
 async function loadStaffInfo() {
     try {
         const response = await fetch('/api/auth_me.php');
@@ -13,10 +22,6 @@ async function loadStaffInfo() {
         const badge = document.getElementById('staff-badge');
         if (data.success && badge) {
             badge.innerText = `👤 ${data.user.username} (${data.user.role})`;
-        }
-        const menuLink = document.getElementById('nav-menu-link');
-        if (menuLink && data.success && data.user.role === 'Admin') {
-            menuLink.classList.remove('hidden');
         }
     } catch (error) {
         console.error('[AUTH] Gagal memuat info staff:', error);
@@ -38,46 +43,48 @@ async function authFetch(url, options) {
     return response;
 }
 
-// ---------- MUAT DATA ANALITIK ----------
-async function loadAnalytics(days = 7) {
+async function loadAnalytics() {
     try {
-        const response = await authFetch(`/api/analytics_summary.php?days=${days}`);
+        const response = await authFetch('/api/dashboard_analytics.php');
         const data = await response.json();
         if (!data.success) return;
 
-        document.getElementById('stat-range-revenue').innerText = `Rp ${data.summary.totalRevenue.toLocaleString('id-ID')}`;
-        document.getElementById('stat-range-orders').innerText = data.summary.totalOrders;
-        document.getElementById('stat-range-avg').innerText = `Rp ${data.summary.avgPerOrder.toLocaleString('id-ID')}`;
-
-        renderSalesChart(data.dailySales);
-        renderHoursChart(data.busiestHours);
-        renderTopItems(data.topItems);
+        analyticsData = data;
+        renderSalesChart();
+        renderTopProductsChart(data.topProducts);
+        renderBusyHoursChart(data.busiestHours);
     } catch (error) {
-        console.error('[DASHBOARD ERROR] Gagal memuat analitik:', error);
+        console.error('[DASHBOARD ERROR]', error);
     }
 }
 
-function renderSalesChart(dailySales) {
-    const canvas = document.getElementById('sales-chart');
-    if (!canvas || typeof Chart === 'undefined') return;
+function switchSalesView(view) {
+    currentSalesView = view;
+    document.getElementById('btn-daily').className = view === 'daily' ? 'btn-primary px-3 py-2 text-xs' : 'btn-ghost px-3 py-2 text-xs';
+    document.getElementById('btn-weekly').className = view === 'weekly' ? 'btn-primary px-3 py-2 text-xs' : 'btn-ghost px-3 py-2 text-xs';
+    renderSalesChart();
+}
 
-    const labels = dailySales.map(d => d.label);
-    const totals = dailySales.map(d => d.total);
+function renderSalesChart() {
+    if (!analyticsData) return;
+    const rows = currentSalesView === 'daily' ? analyticsData.dailySales : analyticsData.weeklySales;
 
+    const ctx = document.getElementById('sales-chart');
     if (salesChart) salesChart.destroy();
-    salesChart = new Chart(canvas, {
+
+    salesChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels,
+            labels: rows.map(r => r.label),
             datasets: [{
-                label: 'Penjualan',
-                data: totals,
-                borderColor: '#A8613A',
-                backgroundColor: 'rgba(168, 97, 58, 0.12)',
-                tension: 0.3,
+                label: 'Pemasukan',
+                data: rows.map(r => r.revenue),
+                borderColor: COLOR_ACCENT,
+                backgroundColor: COLOR_ACCENT_SOFT,
                 fill: true,
+                tension: 0.35,
                 pointRadius: 3,
-                pointBackgroundColor: '#7C4526'
+                pointBackgroundColor: COLOR_ACCENT
             }]
         },
         options: {
@@ -86,83 +93,121 @@ function renderSalesChart(dailySales) {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: (ctx) => `Rp ${ctx.parsed.y.toLocaleString('id-ID')}`
+                        label: (item) => `Rp ${item.raw.toLocaleString('id-ID')}`
                     }
                 }
             },
             scales: {
                 y: {
-                    beginAtZero: true,
-                    ticks: { callback: (v) => 'Rp ' + Number(v).toLocaleString('id-ID') }
+                    ticks: {
+                        callback: (val) => `Rp ${(val / 1000).toLocaleString('id-ID')}rb`,
+                        color: COLOR_TEXT_MUTED
+                    },
+                    grid: { color: COLOR_BORDER }
+                },
+                x: {
+                    ticks: { color: COLOR_TEXT_MUTED },
+                    grid: { display: false }
                 }
             }
         }
     });
 }
 
-function renderHoursChart(busiestHours) {
-    const canvas = document.getElementById('hours-chart');
-    if (!canvas || typeof Chart === 'undefined') return;
+function renderTopProductsChart(topProducts) {
+    const canvas = document.getElementById('top-products-chart');
+    const emptyEl = document.getElementById('top-products-empty');
 
-    const labels = busiestHours.map(h => h.hour);
-    const counts = busiestHours.map(h => h.orders);
+    if (!topProducts || topProducts.length === 0) {
+        canvas.classList.add('hidden');
+        emptyEl.classList.remove('hidden');
+        return;
+    }
+    canvas.classList.remove('hidden');
+    emptyEl.classList.add('hidden');
 
-    if (hoursChart) hoursChart.destroy();
-    hoursChart = new Chart(canvas, {
+    if (topProductsChart) topProductsChart.destroy();
+    topProductsChart = new Chart(canvas, {
         type: 'bar',
         data: {
-            labels,
+            labels: topProducts.map(p => p.name),
             datasets: [{
-                label: 'Jumlah Pesanan',
-                data: counts,
-                backgroundColor: '#DCC0AA',
-                borderRadius: 4
+                label: 'Terjual',
+                data: topProducts.map(p => p.qty),
+                backgroundColor: COLOR_ACCENT,
+                borderRadius: 6
             }]
         },
         options: {
+            indexAxis: 'y',
             responsive: true,
-            plugins: { legend: { display: false } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (item) => `${item.raw} porsi terjual`
+                    }
+                }
+            },
             scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                x: {
+                    ticks: { color: COLOR_TEXT_MUTED, precision: 0 },
+                    grid: { color: COLOR_BORDER }
+                },
+                y: {
+                    ticks: { color: COLOR_TEXT_MUTED },
+                    grid: { display: false }
+                }
             }
         }
     });
 }
 
-function renderTopItems(topItems) {
-    const container = document.getElementById('top-items-list');
-    if (!container) return;
+function renderBusyHoursChart(busiestHours) {
+    const ctx = document.getElementById('busy-hours-chart');
+    if (busyHoursChart) busyHoursChart.destroy();
 
-    if (topItems.length === 0) {
-        container.innerHTML = `<p class="text-xs py-8 text-center" style="color: var(--text-faint)">Belum ada data penjualan pada rentang ini.</p>`;
-        return;
-    }
-
-    const maxQty = Math.max(...topItems.map(i => i.qty), 1);
-
-    container.innerHTML = topItems.map((item, idx) => `
-        <div class="mb-4 last:mb-0">
-            <div class="flex justify-between text-xs mb-1.5">
-                <span style="color: var(--text)">${idx + 1}. ${item.name}</span>
-                <span style="color: var(--text-muted)">${item.qty} terjual</span>
-            </div>
-            <div class="w-full h-2 rounded-full" style="background: var(--border-soft)">
-                <div class="h-2 rounded-full" style="width: ${(item.qty / maxQty) * 100}%; background: var(--accent)"></div>
-            </div>
-        </div>
-    `).join('');
+    busyHoursChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: busiestHours.map(h => h.label),
+            datasets: [{
+                label: 'Jumlah Pesanan',
+                data: busiestHours.map(h => h.total),
+                backgroundColor: COLOR_ACCENT,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (item) => `${item.raw} pesanan`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: { color: COLOR_TEXT_MUTED, precision: 0 },
+                    grid: { color: COLOR_BORDER }
+                },
+                x: {
+                    ticks: {
+                        color: COLOR_TEXT_MUTED,
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 12
+                    },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
 }
 
-// ---------- INISIALISASI ----------
 document.addEventListener('DOMContentLoaded', () => {
     loadStaffInfo();
-    loadAnalytics(7);
-
-    document.querySelectorAll('.range-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('range-btn-active'));
-            btn.classList.add('range-btn-active');
-            loadAnalytics(Number(btn.dataset.days));
-        });
-    });
+    loadAnalytics();
 });

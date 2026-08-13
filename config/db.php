@@ -3,12 +3,9 @@
 // KONEKSI DATABASE (PDO / MySQL)
 // ==========================================
 
-// FIX BUG: sebelumnya nggak ada timezone yang diset sama sekali. Di server
-// kayak Railway, jam OS/MySQL biasanya UTC — beda 7 jam dari WIB. Ini bikin
-// jam pesanan, "hari ini" di papan barista, dan nantinya data analitik
-// (penjualan harian, jam paling ramai) semua meleset. Set dua-duanya:
-// timezone PHP (buat date()/strtotime()) dan timezone session MySQL (buat
-// CURRENT_TIMESTAMP/NOW()/CURDATE() yang dipakai kolom created_at & query).
+// PENTING: server (termasuk Railway) defaultnya pakai UTC, bukan WIB.
+// Tanpa baris ini, semua jam pesanan/laporan bakal keliru ~7 jam,
+// dan fitur "jam paling ramai" di dashboard analitik jadi salah total.
 date_default_timezone_set('Asia/Jakarta');
 
 // Baca file .env sederhana (tanpa library tambahan)
@@ -45,10 +42,8 @@ try {
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
         ]
     );
-
-    // FIX BUG: paksa sesi MySQL pakai offset WIB (+07:00), supaya
-    // CURRENT_TIMESTAMP (default kolom created_at), NOW(), dan CURDATE()
-    // konsisten dengan jam Indonesia — bukan jam server/UTC.
+    // NOW() dan CURRENT_TIMESTAMP di MySQL ikut timezone koneksi ini,
+    // bukan otomatis ikut PHP. Disamakan ke WIB juga di sini.
     $pdo->exec("SET time_zone = '+07:00'");
 } catch (PDOException $e) {
     http_response_code(500);

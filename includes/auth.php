@@ -4,18 +4,25 @@
 // ==========================================
 
 if (session_status() === PHP_SESSION_NONE) {
+    // Cookie session diperketat: nggak bisa dibaca lewat JS (httponly),
+    // nggak dikirim ke situs lain (samesite lax), dan wajib HTTPS kalau
+    // memang diakses lewat HTTPS (Railway/production).
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+
+    session_set_cookie_params([
+        'lifetime' => 8 * 60 * 60, // 8 jam, cukup untuk satu shift
+        'path' => '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure' => $isHttps
+    ]);
     session_start();
 }
 
 function currentUser()
 {
     return $_SESSION['user'] ?? null;
-}
-
-function currentRole()
-{
-    $user = currentUser();
-    return $user['role'] ?? null;
 }
 
 function isLoggedIn()
@@ -42,37 +49,6 @@ function requireAuthPage()
     if (!isLoggedIn()) {
         $redirect = urlencode($_SERVER['REQUEST_URI']);
         header("Location: /login.html?redirect={$redirect}");
-        exit;
-    }
-}
-
-// FITUR BARU: pembatasan berdasarkan role, dipakai untuk fitur yang cuma
-// boleh diakses Admin (misalnya Manajemen Menu). $roles bisa string atau array.
-function requireRoleApi($roles)
-{
-    requireAuthApi();
-    if (!in_array(currentRole(), (array) $roles, true)) {
-        http_response_code(403);
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => false,
-            'message' => 'Kamu tidak punya akses ke fitur ini (khusus ' . implode('/', (array) $roles) . ')'
-        ]);
-        exit;
-    }
-}
-
-function requireRolePage($roles)
-{
-    requireAuthPage();
-    if (!in_array(currentRole(), (array) $roles, true)) {
-        http_response_code(403);
-        echo '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Akses Ditolak</title></head>'
-            . '<body style="font-family: sans-serif; padding: 40px; text-align: center; color: #2B241D;">'
-            . '<h2>Akses ditolak</h2>'
-            . '<p>Halaman ini khusus untuk role: ' . htmlspecialchars(implode('/', (array) $roles)) . '.</p>'
-            . '<p><a href="/bar.php">← Kembali ke Papan Pesanan</a></p>'
-            . '</body></html>';
         exit;
     }
 }
