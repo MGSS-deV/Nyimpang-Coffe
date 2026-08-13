@@ -96,6 +96,37 @@ body {
 .dot-accent-mid { background: var(--accent); }
 .dot-accent-full { background: var(--accent-dark); }
 
+/* ---------- FITUR BARU: Navigasi antar-halaman staff ---------- */
+.nav-link {
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.15s ease, color 0.15s ease;
+    text-decoration: none;
+}
+.nav-link:hover { background: var(--accent-soft); color: var(--accent-dark); }
+.nav-link-active { color: var(--accent-dark); background: var(--accent-soft); }
+
+/* ---------- FITUR BARU: Tombol pilihan rentang waktu (Dashboard) ---------- */
+.range-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 11px;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+.range-btn:hover { border-color: var(--accent); }
+.range-btn-active { background: var(--accent); border-color: var(--accent); color: #FFFFFF; }
+
+/* ---------- FITUR BARU: Tabel (Menu & Riwayat) ---------- */
+table { border-collapse: collapse; }
+tbody tr:hover { background: var(--bg); }
+
 /* Scrollbar tipis, biar tetap tenang di kolom kanban */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }

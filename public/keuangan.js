@@ -13,6 +13,11 @@ async function loadStaffInfo() {
         if (data.success && badge) {
             badge.innerText = `👤 ${data.user.username} (${data.user.role})`;
         }
+        // FITUR BARU: link "Menu" di nav cuma tampil buat role Admin
+        const menuLink = document.getElementById('nav-menu-link');
+        if (menuLink && data.success && data.user.role === 'Admin') {
+            menuLink.classList.remove('hidden');
+        }
     } catch (error) {
         console.error('[AUTH] Gagal memuat info staff:', error);
     }

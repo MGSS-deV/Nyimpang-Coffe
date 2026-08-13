@@ -29,6 +29,8 @@ foreach ($staffAccounts as $s) {
 }
 
 // ---------- PRODUK ----------
+// Catatan: kolom is_active punya DEFAULT 1 di database.sql, jadi seluruh
+// menu di bawah ini otomatis aktif tanpa perlu ditulis eksplisit di sini.
 $products = [
     ['name' => 'Kopi Susu Gula Aren', 'description' => 'Espresso, susu segar, gula aren', 'price' => 18000, 'category' => 'Kopi', 'icon' => '☕'],
     ['name' => 'Americano Hot/Ice', 'description' => 'Double shot, dingin atau panas', 'price' => 15000, 'category' => 'Kopi', 'icon' => '🧊'],

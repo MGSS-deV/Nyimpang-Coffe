@@ -14,6 +14,11 @@ if (!$user || !password_verify($password, $user['password_hash'])) {
     jsonResponse(['success' => false, 'message' => 'Username atau password salah'], 401);
 }
 
+// FIX BUG (session fixation): regenerasi session ID begitu login berhasil,
+// supaya session ID lama (yang mungkin sudah "dikenal" sebelum login, misal
+// lewat link yang dibagikan) nggak bisa dipakai buat membajak sesi staff ini.
+session_regenerate_id(true);
+
 $_SESSION['user'] = ['username' => $user['username'], 'role' => $user['role']];
 
 jsonResponse(['success' => true, 'message' => 'Login berhasil', 'user' => $_SESSION['user']]);

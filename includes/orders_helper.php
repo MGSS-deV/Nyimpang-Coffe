@@ -16,6 +16,9 @@ function formatOrderRow($row)
         'totalAmount' => (int) $row['total_amount'],
         'status' => $row['status'],
         'createdAt' => date('H.i.s', strtotime($row['created_at'])),
+        // FITUR BARU: dipakai halaman Riwayat, butuh tanggal lengkap bukan cuma jam
+        // (createdAt yang lama sengaja dipertahankan apa adanya biar app.js/bar.js lama tetap jalan).
+        'createdAtFull' => date('d/m/Y H.i', strtotime($row['created_at'])),
         'updatedAt' => $row['updated_at'] ? date('H.i.s', strtotime($row['updated_at'])) : null
     ];
 }

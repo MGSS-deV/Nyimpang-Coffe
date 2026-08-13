@@ -14,16 +14,24 @@
 
     <!-- HEADER -->
     <header class="bg-[var(--surface)] border-b border-[var(--border)] sticky top-0 z-30">
-        <div class="max-w-5xl mx-auto px-6 py-5 flex justify-between items-center">
+        <div class="max-w-5xl mx-auto px-6 py-5 flex flex-wrap justify-between items-center gap-3">
             <div>
                 <h1 class="font-display text-xl tracking-tight" style="color: var(--text)">Nyimpang Coffee</h1>
                 <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Laporan Keuangan</p>
             </div>
+            <!-- FITUR BARU: navigasi antar-halaman staff -->
+            <nav class="flex items-center gap-1 text-xs flex-wrap">
+                <a href="dashboard.php" class="nav-link">Dashboard</a>
+                <a href="bar.php" class="nav-link">Papan Pesanan</a>
+                <a href="riwayat.php" class="nav-link">Riwayat</a>
+                <a href="menu.php" id="nav-menu-link" class="nav-link hidden">Menu</a>
+                <a href="keuangan.php" class="nav-link nav-link-active">Laporan Keuangan</a>
+            </nav>
             <div class="flex items-center gap-2">
                 <span id="staff-badge" class="text-xs text-[var(--text-muted)] px-2"></span>
-                <a href="bar.php" class="btn-ghost px-4 py-2 text-xs">← Dashboard Barista</a>
                 <button onclick="logout()" class="btn-text-muted text-xs px-2 py-2">Keluar</button>
             </div>
+        </div>
     </header>
 
     <main class="max-w-5xl mx-auto px-6 py-8 space-y-8">
