@@ -9,6 +9,7 @@ function formatOrderRow($row)
     return [
         'id' => $row['id'],
         'customerName' => $row['customer_name'],
+        'customerPhone' => $row['customer_phone'] ?? null,
         'orderType' => $row['order_type'],
         'tableNo' => $row['table_no'],
         'paymentMethod' => $row['payment_method'],
@@ -27,6 +28,7 @@ function formatOrderRowFull($row)
     return [
         'id' => $row['id'],
         'customerName' => $row['customer_name'],
+        'customerPhone' => $row['customer_phone'] ?? null,
         'orderType' => $row['order_type'],
         'tableNo' => $row['table_no'],
         'paymentMethod' => $row['payment_method'],

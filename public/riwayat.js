@@ -117,6 +117,19 @@ function changePage(delta) {
     loadHistory();
 }
 
+function exportCsv() {
+    const status = document.getElementById('filter-status').value;
+    const dateFrom = document.getElementById('filter-date-from').value;
+    const dateTo = document.getElementById('filter-date-to').value;
+
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+
+    window.location.href = `/api/export_orders_csv.php?${params.toString()}`;
+}
+
 document.getElementById('filter-form').addEventListener('submit', (e) => {
     e.preventDefault();
     currentPage = 1;

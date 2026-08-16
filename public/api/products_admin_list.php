@@ -2,7 +2,7 @@
 require __DIR__ . '/../../config/db.php';
 require __DIR__ . '/../../includes/auth.php';
 
-requireAuthApi();
+requireRoleApi(['Admin']);
 
 $products = $pdo->query(
     "SELECT id, name, description, price, category, icon, is_active FROM products ORDER BY id ASC"

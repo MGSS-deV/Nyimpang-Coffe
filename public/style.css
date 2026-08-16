@@ -99,3 +99,11 @@ body {
 /* Scrollbar tipis, biar tetap tenang di kolom kanban */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+/* ---------- Print-friendly (dipakai buat "Export PDF" via Ctrl+P) ---------- */
+@media print {
+    header, nav, form, .no-print { display: none !important; }
+    body { background: white !important; padding: 0 !important; }
+    .surface-card { border: 1px solid #ccc !important; box-shadow: none !important; break-inside: avoid; }
+    main { max-width: 100% !important; padding: 0 !important; }
+}

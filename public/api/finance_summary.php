@@ -2,7 +2,7 @@
 require __DIR__ . '/../../config/db.php';
 require __DIR__ . '/../../includes/auth.php';
 
-requireAuthApi();
+requireRoleApi(['Admin']);
 
 $incomeRows = $pdo->query(
     "SELECT id, customer_name, items, total_amount, created_at

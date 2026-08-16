@@ -2,7 +2,7 @@
 require __DIR__ . '/../../config/db.php';
 require __DIR__ . '/../../includes/auth.php';
 
-requireAuthApi();
+requireRoleApi(['Admin']);
 
 $body = json_decode(file_get_contents('php://input'), true) ?? [];
 $name = trim($body['name'] ?? '');

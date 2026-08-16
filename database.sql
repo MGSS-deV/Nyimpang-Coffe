@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS orders (
     id VARCHAR(30) PRIMARY KEY,
     customer_name VARCHAR(100) NOT NULL,
+    customer_phone VARCHAR(20) NULL,
     order_type VARCHAR(20) NOT NULL DEFAULT 'Dine In',
     table_no VARCHAR(20) DEFAULT '-',
     payment_method VARCHAR(50) DEFAULT 'QRIS',
@@ -40,7 +41,29 @@ CREATE TABLE IF NOT EXISTS expenses (
     description VARCHAR(255) NOT NULL,
     amount INT NOT NULL,
     category VARCHAR(50) NOT NULL DEFAULT 'Lainnya',
+    ingredient_id INT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Bahan baku (stok)
+CREATE TABLE IF NOT EXISTS ingredients (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    unit VARCHAR(20) NOT NULL DEFAULT 'pcs',
+    stock_qty DECIMAL(10,2) NOT NULL DEFAULT 0,
+    low_stock_threshold DECIMAL(10,2) NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Resep: bahan baku apa aja & berapa banyak dipakai per 1 porsi menu
+CREATE TABLE IF NOT EXISTS product_ingredients (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    ingredient_id INT NOT NULL,
+    qty_per_serving DECIMAL(10,2) NOT NULL DEFAULT 1,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_product_ingredient (product_id, ingredient_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------- SELESAI ----------

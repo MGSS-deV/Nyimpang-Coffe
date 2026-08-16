@@ -24,16 +24,22 @@ async function loadMenu() {
         }
 
         container.innerHTML = data.products.map(p => `
-            <div class="surface-card p-4 flex items-center justify-between gap-4">
+            <div class="surface-card p-4 flex items-center justify-between gap-4 ${p.inStock === false ? 'opacity-60' : ''}">
                 <div class="flex items-center gap-4">
                     <div class="w-14 h-14 rounded-[var(--radius-sm)] flex items-center justify-center text-xl shrink-0" style="background: var(--border-soft)">${p.icon || '☕'}</div>
                     <div>
-                        <h3 class="font-medium text-sm" style="color: var(--text)">${p.name}</h3>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-medium text-sm" style="color: var(--text)">${p.name}</h3>
+                            ${p.inStock === false ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background: #fbe9e7; color: var(--danger)">Stok Habis</span>' : ''}
+                        </div>
                         <p class="text-xs text-[var(--text-muted)] mt-0.5">${p.description || ''}</p>
                         <span class="text-sm font-semibold" style="color: var(--accent-dark)">Rp ${p.price.toLocaleString('id-ID')}</span>
                     </div>
                 </div>
-                <button data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" class="btn-add-menu btn-ghost text-xs px-3 py-2 shrink-0">+ Tambah</button>
+                ${p.inStock === false
+                    ? `<button disabled class="text-xs px-3 py-2 shrink-0 cursor-not-allowed" style="color: var(--text-faint)">Habis</button>`
+                    : `<button data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" class="btn-add-menu btn-ghost text-xs px-3 py-2 shrink-0">+ Tambah</button>`
+                }
             </div>
         `).join('');
     } catch (error) {
@@ -116,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
 
             const customerName = document.getElementById('customer-name').value;
+            const customerPhone = document.getElementById('customer-phone').value;
             const orderType = document.getElementById('order-type').value;
             const tableNo = document.getElementById('table-number').value;
             const paymentMethod = document.getElementById('payment-method').value;
@@ -129,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             pendingOrderData = {
                 customerName,
+                customerPhone,
                 orderType,
                 tableNo,
                 paymentMethod,

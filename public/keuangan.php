@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . "/../includes/auth.php";
-requireAuthPage();
+requireRolePage(['Admin']);
 $activePage = 'keuangan';
 ?>
 <!DOCTYPE html>
@@ -49,6 +49,12 @@ $activePage = 'keuangan';
                 <p class="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Laba Bersih</p>
                 <h3 id="stat-net" class="font-display text-lg mt-1" style="color: var(--accent-dark)">Rp 0</h3>
             </div>
+        </div>
+
+        <!-- EXPORT -->
+        <div class="flex gap-2 no-print">
+            <a href="/api/export_finance_csv.php" class="btn-ghost px-4 py-2 text-xs">📥 Export CSV / Excel</a>
+            <button onclick="window.print()" class="btn-ghost px-4 py-2 text-xs">🖨️ Cetak / Simpan PDF</button>
         </div>
 
         <!-- FORM CATAT PENGELUARAN -->

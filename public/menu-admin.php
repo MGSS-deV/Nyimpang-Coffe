@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . "/../includes/auth.php";
-requireAuthPage();
+requireRolePage(['Admin']);
 $activePage = 'menu';
 ?>
 <!DOCTYPE html>
@@ -76,6 +76,21 @@ $activePage = 'menu';
         <div id="product-list" class="space-y-3"></div>
 
     </main>
+
+    <!-- MODAL ATUR RESEP -->
+    <div id="recipe-modal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+        <div class="surface-card w-full max-w-md p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+            <div>
+                <h3 class="font-display text-lg">Resep: <span id="recipe-product-name"></span></h3>
+                <p class="text-[11px] mt-1" style="color: var(--text-muted)">Centang bahan baku yang dipakai & isi jumlahnya per 1 porsi. Kosongkan centang kalau nggak mau dilacak stoknya.</p>
+            </div>
+            <div id="recipe-ingredient-list" class="space-y-2"></div>
+            <div class="flex gap-2 pt-2">
+                <button type="button" onclick="closeRecipeModal()" class="btn-ghost flex-1 py-2.5 text-xs">Batal</button>
+                <button type="button" onclick="saveRecipe()" class="btn-primary flex-1 py-2.5 text-xs">Simpan Resep</button>
+            </div>
+        </div>
+    </div>
 
     <script src="menu-admin.js"></script>
 </body>

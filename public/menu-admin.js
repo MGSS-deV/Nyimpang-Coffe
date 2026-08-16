@@ -70,6 +70,7 @@ function renderProductList(products) {
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <button onclick='startEdit(${JSON.stringify(p)})' class="btn-ghost text-xs px-3 py-2">Edit</button>
+                <button onclick='openRecipeModal(${p.id}, ${JSON.stringify(p.name)})' class="btn-ghost text-xs px-3 py-2">Resep</button>
                 <button onclick="toggleActive(${p.id}, ${!p.isActive})" class="btn-ghost text-xs px-3 py-2">${p.isActive ? 'Nonaktifkan' : 'Aktifkan'}</button>
                 <button onclick="deleteProduct(${p.id})" class="btn-text-muted text-xs px-2 py-2">Hapus</button>
             </div>
@@ -168,6 +169,84 @@ async function deleteProduct(id) {
         if (result.success) loadProducts();
     } catch (error) {
         console.error('[MENU ERROR]', error);
+    }
+}
+
+// ---------- MODAL ATUR RESEP ----------
+let recipeProductId = null;
+
+async function openRecipeModal(productId, productName) {
+    recipeProductId = productId;
+    document.getElementById('recipe-product-name').innerText = productName;
+    document.getElementById('recipe-modal').classList.remove('hidden');
+    document.getElementById('recipe-ingredient-list').innerHTML = `<p class="text-xs" style="color: var(--text-faint)">Memuat...</p>`;
+
+    try {
+        const [ingredientsRes, recipeRes] = await Promise.all([
+            authFetch('/api/ingredients_list.php'),
+            authFetch(`/api/product_ingredients_get.php?product_id=${productId}`)
+        ]);
+        const ingredientsData = await ingredientsRes.json();
+        const recipeData = await recipeRes.json();
+
+        const currentRecipe = {};
+        (recipeData.recipe || []).forEach(r => { currentRecipe[r.ingredientId] = r.qtyPerServing; });
+
+        const ingredients = ingredientsData.ingredients || [];
+        if (ingredients.length === 0) {
+            document.getElementById('recipe-ingredient-list').innerHTML =
+                `<p class="text-xs" style="color: var(--text-faint)">Belum ada bahan baku. Tambahkan dulu di halaman Stok.</p>`;
+            return;
+        }
+
+        document.getElementById('recipe-ingredient-list').innerHTML = ingredients.map(ing => {
+            const isChecked = currentRecipe[ing.id] !== undefined;
+            const qtyValue = isChecked ? currentRecipe[ing.id] : '';
+            return `
+                <div class="flex items-center gap-3 p-2.5 rounded-[var(--radius-sm)]" style="background: var(--bg)">
+                    <input type="checkbox" id="recipe-check-${ing.id}" ${isChecked ? 'checked' : ''} class="recipe-checkbox" data-ingredient-id="${ing.id}">
+                    <label for="recipe-check-${ing.id}" class="text-xs flex-1" style="color: var(--text)">${ing.name} <span style="color: var(--text-faint)">(${ing.unit})</span></label>
+                    <input type="number" step="0.01" min="0.01" placeholder="jumlah" value="${qtyValue}"
+                        id="recipe-qty-${ing.id}" class="w-20 bg-white border border-[var(--border)] rounded-[var(--radius-sm)] px-2 py-1 text-xs">
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('[RESEP ERROR]', error);
+    }
+}
+
+function closeRecipeModal() {
+    document.getElementById('recipe-modal').classList.add('hidden');
+    recipeProductId = null;
+}
+
+async function saveRecipe() {
+    const checkboxes = document.querySelectorAll('.recipe-checkbox');
+    const recipe = [];
+
+    checkboxes.forEach(cb => {
+        if (!cb.checked) return;
+        const ingredientId = Number(cb.dataset.ingredientId);
+        const qtyInput = document.getElementById(`recipe-qty-${ingredientId}`);
+        const qty = Number(qtyInput.value);
+        if (qty > 0) recipe.push({ ingredientId, qtyPerServing: qty });
+    });
+
+    try {
+        const response = await authFetch('/api/product_ingredients_set.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: recipeProductId, recipe })
+        });
+        const result = await response.json();
+        if (result.success) {
+            closeRecipeModal();
+        } else {
+            alert('Gagal menyimpan resep: ' + result.message);
+        }
+    } catch (error) {
+        console.error('[RESEP ERROR]', error);
     }
 }
 

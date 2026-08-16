@@ -53,6 +53,30 @@ function requireAuthPage()
     }
 }
 
+// Panggil di awal file API yang cuma boleh diakses role tertentu, mis. Admin.
+function requireRoleApi($allowedRoles)
+{
+    requireAuthApi();
+    $user = currentUser();
+    if (!in_array($user['role'], $allowedRoles, true)) {
+        http_response_code(403);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Kamu nggak punya akses ke fitur ini']);
+        exit;
+    }
+}
+
+// Panggil di awal file halaman yang cuma boleh diakses role tertentu.
+function requireRolePage($allowedRoles)
+{
+    requireAuthPage();
+    $user = currentUser();
+    if (!in_array($user['role'], $allowedRoles, true)) {
+        header('Location: /dashboard.php?denied=1');
+        exit;
+    }
+}
+
 function jsonResponse($data, $statusCode = 200)
 {
     http_response_code($statusCode);

@@ -61,6 +61,12 @@ $activePage = 'riwayat';
             </form>
         </div>
 
+        <!-- EXPORT -->
+        <div class="flex gap-2 no-print">
+            <button onclick="exportCsv()" class="btn-ghost px-4 py-2 text-xs">📥 Export CSV / Excel</button>
+            <button onclick="window.print()" class="btn-ghost px-4 py-2 text-xs">🖨️ Cetak / Simpan PDF</button>
+        </div>
+
         <!-- TABEL RIWAYAT -->
         <div class="surface-card overflow-hidden">
             <table class="w-full text-xs">

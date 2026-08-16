@@ -1,6 +1,38 @@
 # Nyimpang Coffee — Versi PHP
 
-## 🆕 Update terbaru: perbaikan bug + 3 fitur baru
+## 🆕🆕 Update TERBARU: 5 fitur besar (stok, WA, pelanggan, export, role)
+
+**Fitur baru session ini:**
+- **Manajemen Stok Bahan Baku** (`stok.php`, khusus Admin) — catat bahan baku
+  (nama, satuan, stok, batas rendah), restock kapan aja (bisa auto-catat ke
+  Keuangan sekalian). Hubungkan bahan baku ke menu lewat tombol **Resep** di
+  halaman Menu. Begitu stok bahan kurang, menu otomatis muncul badge
+  **"Stok Habis"** ke pelanggan dan nggak bisa dipesan — nggak perlu
+  nonaktifin manual. Sistemnya juga aman dari race condition (2 pesanan
+  masuk bersamaan pas stok tinggal sedikit).
+- **Notifikasi WhatsApp ke Barista** (via Fonnte) — begitu ada pesanan baru,
+  otomatis kirim WA ke nomor barista. **Perlu setup manual**: daftar di
+  [fonnte.com](https://fonnte.com), scan QR buat connect WA barista, copy
+  token, isi `FONNTE_TOKEN` & `WA_NOTIFY_NUMBER` di `.env`. Kalau belum
+  diisi, fitur ini otomatis nggak aktif (nggak bikin checkout gagal).
+- **Riwayat Pelanggan** (`pelanggan.php`, khusus Admin) — pelanggan yang isi
+  nomor WhatsApp pas checkout otomatis kerekap di sini, diurutkan dari yang
+  paling sering order (loyal customer).
+- **Export Laporan** — tombol "Export CSV/Excel" di halaman Keuangan &
+  Riwayat (kebuka langsung di Excel), plus tombol "Cetak/Simpan PDF" (pakai
+  fitur print bawaan browser, nggak butuh library tambahan).
+- **Role Permission Beneran** — sekarang `Barista` dan `Admin` beda akses.
+  Barista cuma bisa Dashboard, Barista (kanban), Riwayat. Menu, Stok,
+  Pelanggan, dan Keuangan **khusus Admin** — otomatis kesembunyi dari nav
+  kalau login sebagai Barista, dan API-nya juga ditolak (403) kalau dicoba
+  akses langsung.
+
+**Kalau database kamu sudah ada isinya** (misal di Railway), jalankan
+`migration-v2-stok-crm.sql` dulu (satu-satu, sama kayak migrasi sebelumnya).
+
+---
+
+## Update sebelumnya: perbaikan bug + 3 fitur (dashboard, menu, riwayat)
 
 **Bug yang diperbaiki:**
 - `orders_list.php` dulu narik SEMUA baris pesanan tanpa batas (bisa lambat
@@ -76,24 +108,28 @@ kelihatan 2-3 detik kemudian — bukan langsung 0 detik kayak versi Socket.io.
 
 ```
 nyimpang-coffee-php/
-├── .env                  <- kredensial DB (JANGAN di-commit / upload publik)
-├── database.sql          <- skema tabel, import sekali di awal
-├── migration-add-menu-management.sql  <- jalankan ini kalau DB kamu udah ada isinya
+├── .env                  <- kredensial DB + FONNTE_TOKEN (JANGAN di-commit)
+├── database.sql          <- skema tabel, import sekali di awal (instalasi baru)
+├── migration-add-menu-management.sql  <- migrasi lama (is_active menu)
+├── migration-v2-stok-crm.sql          <- migrasi baru (stok, no HP pelanggan)
 ├── seed.php              <- isi data awal (staff + menu)
 ├── config/
 │   └── db.php             <- koneksi PDO (+ set timezone WIB)
 ├── includes/
-│   ├── auth.php           <- helper session & proteksi login
-│   ├── nav.php             <- navigasi bersama antar halaman staff
-│   └── orders_helper.php  <- helper format & statistik pesanan
+│   ├── auth.php           <- helper session, proteksi login & role
+│   ├── nav.php             <- navigasi bersama, otomatis role-aware
+│   ├── orders_helper.php  <- helper format & statistik pesanan
+│   └── whatsapp.php        <- helper kirim notifikasi via Fonnte
 └── public/                <- INI yang jadi document root web server
     ├── index.html          <- halaman pelanggan (self order)
     ├── login.html          <- login staff
-    ├── dashboard.php       <- dashboard analitik (halaman awal setelah login)
-    ├── bar.php             <- dashboard barista (kanban)
-    ├── riwayat.php         <- riwayat pesanan + filter
-    ├── menu-admin.php      <- kelola menu (CRUD)
-    ├── keuangan.php        <- laporan keuangan
+    ├── dashboard.php       <- dashboard analitik (semua role)
+    ├── bar.php             <- dashboard barista/kanban (semua role)
+    ├── riwayat.php         <- riwayat pesanan + filter (semua role)
+    ├── menu-admin.php      <- kelola menu + resep (khusus Admin)
+    ├── stok.php             <- kelola bahan baku (khusus Admin)
+    ├── pelanggan.php        <- riwayat pelanggan (khusus Admin)
+    ├── keuangan.php        <- laporan keuangan (khusus Admin)
     ├── *.js                <- logic tiap halaman (nama sama kayak .php-nya)
     ├── style.css
     ├── assets/             <- taruh qris-sample.png di sini
