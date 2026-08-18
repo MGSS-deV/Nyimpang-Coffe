@@ -4,10 +4,88 @@
 
 let cart = [];
 let pendingOrderData = null;
+let appliedVoucher = { code: null, discountAmount: 0 };
 let activeOrderId = null;
 let statusPollTimer = null;
 const DANA_NUMBER = "081234567890"; // Ganti nomor DANA kamu di sini
 const POLL_INTERVAL_MS = 2500; // Realtime "semu" - cek status tiap 2.5 detik
+
+// ---------- MIDTRANS (opsional, kalau dikonfigurasi di server) ----------
+async function initMidtrans() {
+    try {
+        const response = await fetch('/api/midtrans_config.php');
+        const config = await response.json();
+        if (!config.configured) return;
+
+        const select = document.getElementById('payment-method');
+        const option = document.createElement('option');
+        option.value = 'Midtrans';
+        option.innerText = 'Kartu / E-Wallet (Midtrans)';
+        select.appendChild(option);
+
+        const script = document.createElement('script');
+        script.src = config.isProduction
+            ? 'https://app.midtrans.com/snap/snap.js'
+            : 'https://app.sandbox.midtrans.com/snap/snap.js';
+        script.setAttribute('data-client-key', config.clientKey);
+        document.head.appendChild(script);
+    } catch (error) {
+        console.error('Gagal cek konfigurasi Midtrans:', error);
+    }
+}
+document.addEventListener('DOMContentLoaded', initMidtrans);
+
+async function payWithMidtrans(orderData) {
+    try {
+        const response = await fetch('/api/midtrans_create_transaction.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            alert('Gagal memulai pembayaran: ' + data.message);
+            return;
+        }
+
+        window.snap.pay(data.snapToken, {
+            onSuccess: () => confirmMidtransPayment(data.pendingId),
+            onPending: () => confirmMidtransPayment(data.pendingId),
+            onError: () => alert('Pembayaran gagal. Coba lagi ya.'),
+            onClose: () => console.log('Popup pembayaran ditutup pelanggan.')
+        });
+    } catch (error) {
+        console.error('Error Midtrans:', error);
+        alert('Terjadi kesalahan koneksi.');
+    }
+}
+
+async function confirmMidtransPayment(pendingId, attempt = 1) {
+    try {
+        const response = await fetch('/api/midtrans_confirm.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pendingId })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            activeOrderId = data.order.id;
+            startOrderTracking(data.order);
+            cart = [];
+            appliedVoucher = { code: null, discountAmount: 0 };
+            updateCartUI();
+            toggleCartModal(false);
+        } else if (attempt < 5) {
+            setTimeout(() => confirmMidtransPayment(pendingId, attempt + 1), 3000);
+        } else {
+            alert('Pembayaran kamu masih diproses. Kalau saldo sudah kepotong, hubungi kasir ya.');
+        }
+    } catch (error) {
+        console.error('Gagal konfirmasi pembayaran:', error);
+    }
+}
 
 // ---------- MENU (diambil dari server, bukan hardcode) ----------
 async function loadMenu() {
@@ -56,6 +134,16 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('DOMContentLoaded', loadMenu);
 
+// Kalau pelanggan buka lewat QR meja (?meja=5), auto-isi nomor mejanya
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const meja = params.get('meja');
+    if (meja) {
+        const tableInput = document.getElementById('table-number');
+        if (tableInput) tableInput.value = meja;
+    }
+});
+
 // ---------- KERANJANG ----------
 // Catatan: productId dikirim ke server saat checkout supaya harga selalu
 // diverifikasi ulang dari database (lihat orders_create.php). name & price
@@ -76,10 +164,11 @@ function updateCartUI() {
     const totalPriceEl = document.getElementById('cart-total-price');
 
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const finalTotal = Math.max(0, subtotal - appliedVoucher.discountAmount);
 
     if (badge) badge.innerText = totalQty;
-    if (totalPriceEl) totalPriceEl.innerText = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+    if (totalPriceEl) totalPriceEl.innerText = `Rp ${finalTotal.toLocaleString('id-ID')}`;
 
     if (!container) return;
 
@@ -114,6 +203,58 @@ function toggleCartModal(open) {
     else modal.classList.add('hidden');
 }
 
+// ---------- VOUCHER ----------
+async function applyVoucher() {
+    const codeInput = document.getElementById('voucher-code');
+    const messageEl = document.getElementById('voucher-message');
+    const code = codeInput.value.trim().toUpperCase();
+
+    if (!code) {
+        appliedVoucher = { code: null, discountAmount: 0 };
+        messageEl.innerText = '';
+        updateVoucherDisplay();
+        updateCartUI();
+        return;
+    }
+
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+    try {
+        const response = await fetch('/api/vouchers_validate.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, subtotal })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            appliedVoucher = { code, discountAmount: data.discountAmount };
+            messageEl.innerText = `✓ Voucher berhasil dipakai!`;
+            messageEl.style.color = 'var(--accent-dark)';
+        } else {
+            appliedVoucher = { code: null, discountAmount: 0 };
+            messageEl.innerText = data.message;
+            messageEl.style.color = 'var(--danger)';
+        }
+    } catch (error) {
+        console.error('Gagal cek voucher:', error);
+    }
+
+    updateVoucherDisplay();
+    updateCartUI();
+}
+
+function updateVoucherDisplay() {
+    const row = document.getElementById('voucher-discount-row');
+    const amountEl = document.getElementById('voucher-discount-amount');
+    if (appliedVoucher.discountAmount > 0) {
+        row.style.display = 'flex';
+        amountEl.innerText = `- Rp ${appliedVoucher.discountAmount.toLocaleString('id-ID')}`;
+    } else {
+        row.style.display = 'none';
+    }
+}
+
 // ---------- CHECKOUT ----------
 document.addEventListener('DOMContentLoaded', () => {
     const checkoutForm = document.getElementById('checkout-form');
@@ -140,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 orderType,
                 tableNo,
                 paymentMethod,
+                voucherCode: appliedVoucher.code,
                 // Cuma kirim productId + qty. Nama & harga final dihitung
                 // ulang di server dari database (lihat orders_create.php).
                 items: cart.map(item => ({ id: item.productId, qty: item.qty }))
@@ -147,8 +289,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (paymentMethod === 'Kasir / Cash') {
                 submitOrderToServer(pendingOrderData);
+            } else if (paymentMethod === 'Midtrans') {
+                payWithMidtrans(pendingOrderData);
             } else {
-                showPaymentModal(paymentMethod, totalPrice);
+                const finalTotal = Math.max(0, totalPrice - appliedVoucher.discountAmount);
+                showPaymentModal(paymentMethod, finalTotal);
             }
         });
     }
@@ -219,6 +364,7 @@ async function submitOrderToServer(payload) {
             startOrderTracking(data.order);
 
             cart = [];
+            appliedVoucher = { code: null, discountAmount: 0 };
             updateCartUI();
             toggleCartModal(false);
         } else {
@@ -236,6 +382,7 @@ function startOrderTracking(order) {
     if (!tracker) return;
     tracker.classList.remove('hidden');
     document.getElementById('tracker-order-id').innerText = `${order.id} • ${order.customerName}`;
+    document.getElementById('struk-link').href = `struk.php?id=${encodeURIComponent(order.id)}`;
     updateTrackerUI(order.status);
     tracker.scrollIntoView({ behavior: 'smooth', block: 'start' });
 

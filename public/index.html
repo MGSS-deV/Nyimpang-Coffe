@@ -51,6 +51,7 @@
                     <p class="text-[10px] mt-2 text-[var(--text-muted)]">Siap Diambil</p>
                 </div>
             </div>
+            <a id="struk-link" href="#" target="_blank" class="btn-ghost inline-block px-4 py-2 text-xs mt-5">🧾 Lihat / Cetak Struk</a>
         </div>
     </div>
 
@@ -111,6 +112,21 @@
                             <option value="DANA">DANA (Auto Nominal)</option>
                             <option value="Kasir / Cash">Bayar di Kasir (Cash)</option>
                         </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Kode Voucher <span style="color: var(--text-faint)">(opsional)</span></label>
+                        <div class="flex gap-2">
+                            <input type="text" id="voucher-code" placeholder="DISKON20" style="text-transform: uppercase"
+                                class="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-[var(--radius-sm)] px-3 py-2 text-xs focus:outline-none focus:border-[var(--accent)]">
+                            <button type="button" onclick="applyVoucher()" class="btn-ghost px-3 py-2 text-xs shrink-0">Pakai</button>
+                        </div>
+                        <p id="voucher-message" class="text-[11px] mt-1"></p>
+                    </div>
+
+                    <div class="flex justify-between items-center text-xs" id="voucher-discount-row" style="display: none; color: var(--accent-dark)">
+                        <span>Diskon Voucher</span>
+                        <span id="voucher-discount-amount">- Rp 0</span>
                     </div>
 
                     <div class="flex justify-between items-center pt-2 text-sm">

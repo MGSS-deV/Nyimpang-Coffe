@@ -1,18 +1,18 @@
 <?php
 // ==========================================
-// NOTIFIKASI WHATSAPP KE BARISTA (via Fonnte)
+// NOTIFIKASI WHATSAPP (via Fonnte)
 // ==========================================
-// Daftar dulu di https://fonnte.com, scan QR buat connect nomor WA barista,
+// Daftar dulu di https://fonnte.com, scan QR buat connect nomor WA pengirim,
 // copy token dari dashboard Fonnte, isi ke .env:
 //   FONNTE_TOKEN=xxxxxxxxxxxx
-//   WA_NOTIFY_NUMBER=6281234567890
+//   WA_NOTIFY_NUMBER=6281234567890   (nomor tujuan notif pesanan baru & stok rendah)
 //
-// Kalau FONNTE_TOKEN belum diisi, fungsi ini otomatis nggak ngapa-ngapain.
+// Kalau FONNTE_TOKEN belum diisi, semua fungsi di sini otomatis nggak ngapa-ngapain.
 
-function sendWhatsAppNotification($message)
+// Fungsi dasar: kirim WA ke NOMOR MANAPUN yang di-spesifikasiin (dipakai buat notif ke pelanggan)
+function sendWhatsAppNotificationTo($target, $message)
 {
     $token = getenv('FONNTE_TOKEN');
-    $target = getenv('WA_NOTIFY_NUMBER');
 
     if (!$token || !$target) {
         return;
@@ -37,6 +37,12 @@ function sendWhatsAppNotification($message)
     }
 }
 
+// Shortcut: kirim ke nomor barista/admin (WA_NOTIFY_NUMBER di .env)
+function sendWhatsAppNotification($message)
+{
+    sendWhatsAppNotificationTo(getenv('WA_NOTIFY_NUMBER'), $message);
+}
+
 function formatOrderWhatsAppMessage($order)
 {
     $itemsText = implode("\n", array_map(
@@ -51,4 +57,23 @@ function formatOrderWhatsAppMessage($order)
         . "{$itemsText}\n\n"
         . "Total: Rp " . number_format($order['totalAmount'], 0, ',', '.') . "\n"
         . "Bayar: {$order['paymentMethod']}";
+}
+
+// Notif ke PELANGGAN pas pesanan siap diambil (kalau dia isi no HP pas checkout)
+function formatPickupWhatsAppMessage($order)
+{
+    return "☕ *Pesanan Kamu Siap Diambil!*\n\n"
+        . "Halo {$order['customerName']}, pesanan {$order['id']} udah siap ya, silakan diambil di kasir 😊\n\n"
+        . "Terima kasih sudah pesan di Nyimpang Coffee!";
+}
+
+// Alert ke admin/barista kalau ada bahan baku yang stoknya tembus batas rendah
+function formatLowStockWhatsAppMessage($ingredients)
+{
+    $list = implode("\n", array_map(
+        fn($i) => "- {$i['name']}: sisa {$i['stock_qty']} {$i['unit']} (batas: {$i['low_stock_threshold']} {$i['unit']})",
+        $ingredients
+    ));
+
+    return "⚠️ *Peringatan Stok Rendah!*\n\n{$list}\n\nSegera restock ya sebelum kehabisan.";
 }

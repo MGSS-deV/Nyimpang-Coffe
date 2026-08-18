@@ -2,6 +2,7 @@
 require __DIR__ . '/../../config/db.php';
 require __DIR__ . '/../../includes/auth.php';
 require __DIR__ . '/../../includes/orders_helper.php';
+require __DIR__ . '/../../includes/whatsapp.php';
 
 requireAuthApi();
 
@@ -26,6 +27,11 @@ $update->execute(['status' => $status, 'id' => $id]);
 $row = $pdo->prepare("SELECT * FROM orders WHERE id = :id");
 $row->execute(['id' => $id]);
 $order = formatOrderRow($row->fetch());
+
+// Notif WA ke pelanggan (kalau dia isi no HP) pas pesanannya siap diambil
+if ($status === 'Siap Diambil' && !empty($order['customerPhone'])) {
+    sendWhatsAppNotificationTo($order['customerPhone'], formatPickupWhatsAppMessage($order));
+}
 
 jsonResponse([
     'success' => true,

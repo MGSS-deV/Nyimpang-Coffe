@@ -175,6 +175,7 @@ function renderColumn(containerId, columnOrders, action) {
                         Batalkan
                     </button>
                 ` : ''}
+                <a href="struk.php?id=${order.id}" target="_blank" class="btn-ghost text-xs py-2.5 px-3">🧾</a>
                 <button onclick="updateOrderStatus('${order.id}', '${action.nextStatus}')" class="btn-primary flex-1 text-xs py-2.5 cursor-pointer">
                     ${action.label}
                 </button>

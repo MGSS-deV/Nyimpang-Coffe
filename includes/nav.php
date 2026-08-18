@@ -10,8 +10,10 @@ $navLinks = [
     'bar' => ['label' => 'Barista', 'href' => 'bar.php', 'adminOnly' => false],
     'riwayat' => ['label' => 'Riwayat', 'href' => 'riwayat.php', 'adminOnly' => false],
     'menu' => ['label' => 'Menu', 'href' => 'menu-admin.php', 'adminOnly' => true],
+    'qr-meja' => ['label' => 'QR Meja', 'href' => 'qr-meja.php', 'adminOnly' => true],
     'stok' => ['label' => 'Stok', 'href' => 'stok.php', 'adminOnly' => true],
     'pelanggan' => ['label' => 'Pelanggan', 'href' => 'pelanggan.php', 'adminOnly' => true],
+    'voucher' => ['label' => 'Voucher', 'href' => 'voucher-admin.php', 'adminOnly' => true],
     'keuangan' => ['label' => 'Keuangan', 'href' => 'keuangan.php', 'adminOnly' => true],
 ];
 ?>

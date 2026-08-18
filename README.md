@@ -1,6 +1,33 @@
 # Nyimpang Coffee — Versi PHP
 
-## 🆕🆕 Update TERBARU: 5 fitur besar (stok, WA, pelanggan, export, role)
+## 🆕🆕🆕 Update TERBARU: 6 fitur (WA pelanggan, alert stok, struk, QR meja, voucher, Midtrans)
+
+- **Notif WA ke Pelanggan** — begitu status pesanan jadi "Siap Diambil",
+  otomatis kirim WA ke pelanggan (kalau dia isi nomor pas checkout).
+- **Alert Stok Rendah Otomatis** — begitu ada bahan baku tembus batas
+  rendah pas ada pesanan masuk, langsung WA ke nomor admin.
+- **Cetak Struk** (`struk.php?id=...`) — halaman struk yang bisa diprint,
+  linknya muncul otomatis di tracker pelanggan & kartu kanban barista.
+- **QR Code per Meja** (`qr-meja.php`, khusus Admin) — generate & cetak QR
+  buat tiap meja, pelanggan scan → nomor meja otomatis keisi.
+- **Voucher/Promo** (`voucher-admin.php`, khusus Admin) — bikin kode diskon
+  (persen/nominal, minimal belanja, batas pemakaian, kedaluwarsa). Pelanggan
+  masukin kode pas checkout, diskon diverifikasi ulang di server (nggak
+  bisa dimanipulasi lewat DevTools).
+- **Pembayaran Midtrans Beneran** — opsi bayar kartu/e-wallet asli muncul
+  otomatis di checkout **kalau** kredensial Midtrans udah diisi di `.env`.
+  **Perlu setup manual**: daftar di [midtrans.com](https://midtrans.com)
+  (mode Sandbox dulu buat testing gratis), isi `MIDTRANS_SERVER_KEY`,
+  `MIDTRANS_CLIENT_KEY`, `MIDTRANS_IS_PRODUCTION` di `.env`. Status
+  pembayaran dicek LANGSUNG ke server Midtrans (bukan percaya popup di
+  browser doang), jadi aman dari orang yang coba akalin "pura-pura bayar".
+
+**Kalau database kamu sudah ada isinya**, jalankan `migration-v3-voucher.sql`
+dan `migration-v4-midtrans.sql` (satu-satu, sama kayak migrasi sebelumnya).
+
+---
+
+## Update sebelumnya (2): stok bahan baku, WA ke barista, pelanggan, export, role
 
 **Fitur baru session ini:**
 - **Manajemen Stok Bahan Baku** (`stok.php`, khusus Admin) — catat bahan baku

@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS orders (
     payment_method VARCHAR(50) DEFAULT 'QRIS',
     items JSON NOT NULL,
     total_amount INT NOT NULL,
+    voucher_code VARCHAR(30) NULL,
+    discount_amount INT NOT NULL DEFAULT 0,
     status VARCHAR(20) NOT NULL DEFAULT 'Masuk',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL
@@ -73,3 +75,24 @@ CREATE TABLE IF NOT EXISTS product_ingredients (
 -- Setelah import file ini, jalankan:
 --   php seed.php
 
+
+-- Voucher/promo diskon
+CREATE TABLE IF NOT EXISTS vouchers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(30) UNIQUE NOT NULL,
+    discount_type ENUM('percent','fixed') NOT NULL DEFAULT 'percent',
+    discount_value INT NOT NULL,
+    min_purchase INT NOT NULL DEFAULT 0,
+    max_uses INT NULL,
+    used_count INT NOT NULL DEFAULT 0,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    expires_at DATE NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Transaksi Midtrans yang belum lunas (dihapus otomatis pas berhasil dikonfirmasi)
+CREATE TABLE IF NOT EXISTS midtrans_pending (
+    id VARCHAR(50) PRIMARY KEY,
+    payload TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
