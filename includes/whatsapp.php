@@ -77,3 +77,20 @@ function formatLowStockWhatsAppMessage($ingredients)
 
     return "⚠️ *Peringatan Stok Rendah!*\n\n{$list}\n\nSegera restock ya sebelum kehabisan.";
 }
+
+// Format laporan harian, dipakai cron-daily-report.php
+function formatDailyReportWhatsAppMessage($stats)
+{
+    $topLine = $stats['topProduct']
+        ? "{$stats['topProduct']['name']} ({$stats['topProduct']['qty']} porsi)"
+        : '-';
+
+    return "📊 *Laporan Harian Nyimpang Coffee*\n"
+        . date('d/m/Y') . "\n\n"
+        . "🧾 Pesanan Selesai: {$stats['orderCount']}\n"
+        . "💰 Omzet: Rp " . number_format($stats['revenue'], 0, ',', '.') . "\n"
+        . "💸 Pengeluaran: Rp " . number_format($stats['expense'], 0, ',', '.') . "\n"
+        . "📈 Laba Bersih: Rp " . number_format($stats['revenue'] - $stats['expense'], 0, ',', '.') . "\n"
+        . "🏆 Menu Terlaris: {$topLine}\n\n"
+        . "Semangat terus ya! ☕";
+}

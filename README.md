@@ -1,6 +1,31 @@
 # Nyimpang Coffee — Versi PHP
 
-## 🆕🆕🆕 Update TERBARU: 6 fitur (WA pelanggan, alert stok, struk, QR meja, voucher, Midtrans)
+## 🆕🆕🆕🆕 Update TERBARU: margin profit, laporan WA harian, shift, poin loyalitas
+
+- **Margin Profit per Menu** — di `menu-admin.php`, klik "Tampilkan Margin
+  Profit" buat lihat estimasi modal & untung tiap menu (dihitung otomatis
+  dari harga rata-rata bahan baku yang pernah di-restock + resep menu).
+  Kalau menu belum ada resep atau bahannya belum pernah direstock pakai
+  biaya, tampil "belum ada data" (bukan angka ngasal).
+- **Laporan Harian Otomatis ke WA jam 23:00** — perlu setup pemicu dari
+  luar (Railway sendiri nggak bisa "nyalain jadwal"). Caranya ada di komentar
+  paling atas file `public/cron-daily-report.php` — intinya daftar gratis
+  di [cron-job.org](https://cron-job.org), suruh dia hit URL
+  `.../cron-daily-report.php?secret=XXXX` tiap jam 23:00 WIB. Isi
+  `CRON_SECRET` di `.env` dulu (bebas, kayak password).
+- **Shift/Absen Staff** (`shift.php`, semua role) — clock-in/clock-out
+  sendiri, Admin bisa lihat riwayat shift semua staff.
+- **Poin Loyalitas** — pelanggan yang isi WA otomatis dapat 1 poin tiap
+  kelipatan Rp 10.000 belanja (dihitung pas pesanan Selesai). Poin bisa
+  dipakai lagi pas checkout berikutnya (1 poin = Rp 100 diskon), otomatis
+  muncul kalau pelanggan punya poin & isi nomor WA yang sama. Kelihatan
+  juga di halaman Pelanggan.
+
+**Kalau database kamu sudah ada isinya**, jalankan `migration-v5-margin-shift-loyalty.sql`.
+
+---
+
+## Update sebelumnya (3): WA pelanggan, alert stok, struk, QR meja, voucher, Midtrans
 
 - **Notif WA ke Pelanggan** — begitu status pesanan jadi "Siap Diambil",
   otomatis kirim WA ke pelanggan (kalau dia isi nomor pas checkout).

@@ -5,6 +5,8 @@
 let cart = [];
 let pendingOrderData = null;
 let appliedVoucher = { code: null, discountAmount: 0 };
+let availablePoints = 0;
+let usePointsChecked = false;
 let activeOrderId = null;
 let statusPollTimer = null;
 const DANA_NUMBER = "081234567890"; // Ganti nomor DANA kamu di sini
@@ -165,7 +167,8 @@ function updateCartUI() {
 
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const finalTotal = Math.max(0, subtotal - appliedVoucher.discountAmount);
+    const pointsDiscount = usePointsChecked ? Math.min(availablePoints * 100, subtotal - appliedVoucher.discountAmount) : 0;
+    const finalTotal = Math.max(0, subtotal - appliedVoucher.discountAmount - pointsDiscount);
 
     if (badge) badge.innerText = totalQty;
     if (totalPriceEl) totalPriceEl.innerText = `Rp ${finalTotal.toLocaleString('id-ID')}`;
@@ -255,6 +258,47 @@ function updateVoucherDisplay() {
     }
 }
 
+// ---------- POIN LOYALITAS ----------
+async function checkCustomerPoints() {
+    const phone = document.getElementById('customer-phone').value.trim();
+    const section = document.getElementById('points-section');
+
+    if (!phone) {
+        section.classList.add('hidden');
+        availablePoints = 0;
+        usePointsChecked = false;
+        updateCartUI();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/points_check.php?phone=${encodeURIComponent(phone)}`);
+        const data = await response.json();
+
+        if (data.success && data.points > 0) {
+            availablePoints = data.points;
+            document.getElementById('available-points').innerText = availablePoints;
+            document.getElementById('points-value').innerText = (availablePoints * 100).toLocaleString('id-ID');
+            section.classList.remove('hidden');
+        } else {
+            section.classList.add('hidden');
+            availablePoints = 0;
+        }
+    } catch (error) {
+        console.error('Gagal cek poin:', error);
+    }
+}
+
+function toggleUsePoints() {
+    usePointsChecked = document.getElementById('use-points-checkbox').checked;
+    updateCartUI();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const phoneInput = document.getElementById('customer-phone');
+    if (phoneInput) phoneInput.addEventListener('blur', checkCustomerPoints);
+});
+
 // ---------- CHECKOUT ----------
 document.addEventListener('DOMContentLoaded', () => {
     const checkoutForm = document.getElementById('checkout-form');
@@ -274,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const pointsToUse = usePointsChecked ? availablePoints : 0;
 
             pendingOrderData = {
                 customerName,
@@ -282,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tableNo,
                 paymentMethod,
                 voucherCode: appliedVoucher.code,
+                usePoints: pointsToUse,
                 // Cuma kirim productId + qty. Nama & harga final dihitung
                 // ulang di server dari database (lihat orders_create.php).
                 items: cart.map(item => ({ id: item.productId, qty: item.qty }))
@@ -292,7 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (paymentMethod === 'Midtrans') {
                 payWithMidtrans(pendingOrderData);
             } else {
-                const finalTotal = Math.max(0, totalPrice - appliedVoucher.discountAmount);
+                const pointsDiscount = pointsToUse ? Math.min(pointsToUse * 100, totalPrice - appliedVoucher.discountAmount) : 0;
+                const finalTotal = Math.max(0, totalPrice - appliedVoucher.discountAmount - pointsDiscount);
                 showPaymentModal(paymentMethod, finalTotal);
             }
         });

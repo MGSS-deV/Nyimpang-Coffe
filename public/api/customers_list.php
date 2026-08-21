@@ -17,13 +17,18 @@ $rows = $pdo->query(
      ORDER BY order_count DESC, total_spent DESC"
 )->fetchAll();
 
-$customers = array_map(function ($row) {
+$customers = array_map(function ($row) use ($pdo) {
+    $pointsRow = $pdo->prepare("SELECT points FROM customer_points WHERE phone = :phone");
+    $pointsRow->execute(['phone' => $row['customer_phone']]);
+    $points = (int) ($pointsRow->fetch()['points'] ?? 0);
+
     return [
         'phone' => $row['customer_phone'],
         'name' => $row['latest_name'],
         'orderCount' => (int) $row['order_count'],
         'totalSpent' => (int) $row['total_spent'],
-        'lastOrderAt' => date('d/m/Y H.i', strtotime($row['last_order_at']))
+        'lastOrderAt' => date('d/m/Y H.i', strtotime($row['last_order_at'])),
+        'points' => $points
     ];
 }, $rows);
 

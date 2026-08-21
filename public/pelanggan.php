@@ -43,6 +43,7 @@ $activePage = 'pelanggan';
                         <th class="px-4 py-3 font-semibold" style="color: var(--text-muted)">No. WhatsApp</th>
                         <th class="px-4 py-3 font-semibold text-right" style="color: var(--text-muted)">Jumlah Order</th>
                         <th class="px-4 py-3 font-semibold text-right" style="color: var(--text-muted)">Total Belanja</th>
+                        <th class="px-4 py-3 font-semibold text-right" style="color: var(--text-muted)">Poin</th>
                         <th class="px-4 py-3 font-semibold" style="color: var(--text-muted)">Order Terakhir</th>
                     </tr>
                 </thead>

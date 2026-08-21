@@ -33,6 +33,22 @@ if ($status === 'Siap Diambil' && !empty($order['customerPhone'])) {
     sendWhatsAppNotificationTo($order['customerPhone'], formatPickupWhatsAppMessage($order));
 }
 
+// Poin loyalitas: 1 poin per Rp 10.000 belanja, dikasih pas pesanan Selesai
+// (bukan pas Masuk, biar nggak dikasih poin buat pesanan yang dibatalkan)
+if ($status === 'Selesai' && !empty($order['customerPhone'])) {
+    $pointsEarned = intdiv($order['totalAmount'], 10000);
+    if ($pointsEarned > 0) {
+        $pdo->prepare(
+            "INSERT INTO customer_points (phone, name, points) VALUES (:phone, :name, :points)
+             ON DUPLICATE KEY UPDATE points = points + :points, name = :name"
+        )->execute([
+            'phone' => $order['customerPhone'],
+            'name' => $order['customerName'],
+            'points' => $pointsEarned
+        ]);
+    }
+}
+
 jsonResponse([
     'success' => true,
     'message' => 'Status pesanan diperbarui',

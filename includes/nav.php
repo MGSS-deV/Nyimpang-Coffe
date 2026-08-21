@@ -9,6 +9,7 @@ $navLinks = [
     'dashboard' => ['label' => 'Dashboard', 'href' => 'dashboard.php', 'adminOnly' => false],
     'bar' => ['label' => 'Barista', 'href' => 'bar.php', 'adminOnly' => false],
     'riwayat' => ['label' => 'Riwayat', 'href' => 'riwayat.php', 'adminOnly' => false],
+    'shift' => ['label' => 'Shift', 'href' => 'shift.php', 'adminOnly' => false],
     'menu' => ['label' => 'Menu', 'href' => 'menu-admin.php', 'adminOnly' => true],
     'qr-meja' => ['label' => 'QR Meja', 'href' => 'qr-meja.php', 'adminOnly' => true],
     'stok' => ['label' => 'Stok', 'href' => 'stok.php', 'adminOnly' => true],

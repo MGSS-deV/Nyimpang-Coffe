@@ -3,6 +3,28 @@
 // ==========================================
 
 let editingId = null;
+let marginData = {};
+let showMargin = false;
+
+async function toggleMarginView() {
+    showMargin = !showMargin;
+    const btn = document.getElementById('margin-toggle-btn');
+
+    if (showMargin && Object.keys(marginData).length === 0) {
+        try {
+            const response = await authFetch('/api/products_margin.php');
+            const data = await response.json();
+            if (data.success) {
+                data.products.forEach(p => { marginData[p.id] = p; });
+            }
+        } catch (error) {
+            console.error('[MARGIN ERROR]', error);
+        }
+    }
+
+    btn.innerText = showMargin ? '📊 Sembunyikan Margin' : '📊 Tampilkan Margin Profit';
+    loadProducts();
+}
 
 async function loadStaffInfo() {
     try {
@@ -43,6 +65,21 @@ async function loadProducts() {
     }
 }
 
+function renderMarginInfo(productId) {
+    const m = marginData[productId];
+    if (!m) return '';
+
+    if (!m.hasFullCostData) {
+        return `<p class="text-[10px] mt-1" style="color: var(--text-faint)">Margin: belum ada data biaya bahan (set resep + restock dengan biaya dulu)</p>`;
+    }
+
+    const isProfit = m.margin >= 0;
+    const color = isProfit ? 'var(--accent-dark)' : 'var(--danger)';
+    return `<p class="text-[11px] mt-1" style="color: ${color}">
+        Modal ~Rp ${m.estimatedCost.toLocaleString('id-ID')} · Margin Rp ${m.margin.toLocaleString('id-ID')} (${m.marginPercent}%)
+    </p>`;
+}
+
 function renderProductList(products) {
     const container = document.getElementById('product-list');
 
@@ -66,6 +103,7 @@ function renderProductList(products) {
                     </div>
                     <p class="text-xs truncate" style="color: var(--text-muted)">${p.description || '-'} • ${p.category}</p>
                     <span class="text-xs font-semibold" style="color: var(--accent-dark)">Rp ${p.price.toLocaleString('id-ID')}</span>
+                    ${showMargin ? renderMarginInfo(p.id) : ''}
                 </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">

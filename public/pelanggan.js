@@ -44,6 +44,7 @@ async function loadCustomers() {
                 <td class="px-4 py-3" style="color: var(--text-muted)">${c.phone}</td>
                 <td class="px-4 py-3 text-right" style="color: var(--text)">${c.orderCount}x</td>
                 <td class="px-4 py-3 text-right font-semibold" style="color: var(--accent-dark)">Rp ${c.totalSpent.toLocaleString('id-ID')}</td>
+                <td class="px-4 py-3 text-right" style="color: var(--text)">${c.points} pts</td>
                 <td class="px-4 py-3" style="color: var(--text-muted)">${c.lastOrderAt}</td>
             </tr>
         `).join('');

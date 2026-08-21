@@ -28,14 +28,15 @@ try {
     if ($cost > 0) {
         $expenseId = 'EXP-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
         $expenseStmt = $pdo->prepare(
-            "INSERT INTO expenses (id, description, amount, category, ingredient_id)
-             VALUES (:id, :description, :amount, 'Bahan Baku', :ingredient_id)"
+            "INSERT INTO expenses (id, description, amount, category, ingredient_id, restock_qty)
+             VALUES (:id, :description, :amount, 'Bahan Baku', :ingredient_id, :restock_qty)"
         );
         $expenseStmt->execute([
             'id' => $expenseId,
             'description' => "Restock {$ingredient['name']} ({$addQty} {$ingredient['unit']})",
             'amount' => $cost,
-            'ingredient_id' => $id
+            'ingredient_id' => $id,
+            'restock_qty' => $addQty
         ]);
     }
 

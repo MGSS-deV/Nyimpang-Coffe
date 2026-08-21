@@ -129,6 +129,15 @@
                         <span id="voucher-discount-amount">- Rp 0</span>
                     </div>
 
+                    <div id="points-section" class="hidden">
+                        <div class="flex items-center justify-between p-2.5 rounded-[var(--radius-sm)]" style="background: var(--bg); border: 1px solid var(--border-soft)">
+                            <label class="flex items-center gap-2 text-xs" style="color: var(--text)">
+                                <input type="checkbox" id="use-points-checkbox" onchange="toggleUsePoints()">
+                                Pakai poin (<span id="available-points">0</span> pts = Rp <span id="points-value">0</span>)
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="flex justify-between items-center pt-2 text-sm">
                         <span class="text-[var(--text-muted)]">Total</span>
                         <span id="cart-total-price" class="font-display text-base" style="color: var(--accent-dark)">Rp 0</span>

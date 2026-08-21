@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     amount INT NOT NULL,
     category VARCHAR(50) NOT NULL DEFAULT 'Lainnya',
     ingredient_id INT NULL,
+    restock_qty DECIMAL(10,2) NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -95,4 +96,20 @@ CREATE TABLE IF NOT EXISTS midtrans_pending (
     id VARCHAR(50) PRIMARY KEY,
     payload TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Shift/absen staff
+CREATE TABLE IF NOT EXISTS shifts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    staff_username VARCHAR(50) NOT NULL,
+    clock_in DATETIME NOT NULL,
+    clock_out DATETIME NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Poin loyalitas pelanggan
+CREATE TABLE IF NOT EXISTS customer_points (
+    phone VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    points INT NOT NULL DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

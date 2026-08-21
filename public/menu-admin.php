@@ -73,6 +73,10 @@ $activePage = 'menu';
         </div>
 
         <!-- DAFTAR MENU -->
+        <div class="flex items-center justify-between">
+            <h2 class="font-display text-lg">Daftar Menu</h2>
+            <button onclick="toggleMarginView()" id="margin-toggle-btn" class="btn-ghost text-xs px-3 py-2">📊 Tampilkan Margin Profit</button>
+        </div>
         <div id="product-list" class="space-y-3"></div>
 
     </main>
